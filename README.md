@@ -151,7 +151,7 @@ We will develop at least one game of our own for the webshop.
 We are going to use Bootstrap as the UI framework.
 
 ### Additional features:
-####Displaying related games
+#### Displaying related games
 Our plan is to list games that the user may be interested in based on tags related to the game type. This might not be such a valuable feature if the total amount of games is small, but if the amount increases, it is a handy feature.
 
 ## Working methods and tools
