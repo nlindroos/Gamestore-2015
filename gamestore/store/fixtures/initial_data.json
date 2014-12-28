@@ -1,0 +1,123 @@
+[
+  {
+    "model": "store.player",
+    "pk": 1,
+    "fields": {
+      "name": "John",
+      "email": "john@domain.com"
+    }
+  },
+  {
+    "model": "store.player",
+    "pk": 2,
+    "fields": {
+      "name": "Paul",
+      "email": "paul@domain.com"
+    }
+  },
+  {
+    "model": "store.developer",
+    "pk": 1,
+    "fields": {
+      "name": "Martin",
+      "email": "martin@domain.com"
+    }
+  },
+  {
+    "model": "store.developer",
+    "pk": 2,
+    "fields": {
+      "name": "Johan",
+      "email": "johan@domain.com"
+    }
+  },
+  {
+    "model": "store.developer",
+    "pk": 3,
+    "fields": {
+      "name": "Niklas",
+      "email": "niklas@domain.com"
+    }
+  },
+  {
+    "model": "store.game",
+    "pk": 1,
+    "fields": {
+      "developer": 1,
+      "title": "Maze",
+      "url": "http://www.hypothetical.com/maze",
+      "price": 4.20,
+      "tags": "puzzle, maze"
+    }
+  },
+  {
+    "model": "store.game",
+    "pk": 2,
+    "fields": {
+      "developer": 1,
+      "title": "Shooter game",
+      "url": "http://www.hypothetical.com/shooter",
+      "price": 7,
+      "tags": "shooter, fast_pace"
+    }
+  },
+  {
+    "model": "store.game",
+    "pk": 3,
+    "fields": {
+      "developer": 2,
+      "title": "President Evil",
+      "url": "http://www.myurl.com",
+      "price": 0,
+      "tags": "adventure, text_game"
+    }
+  },
+  {
+    "model": "store.highscore",
+    "pk": 1,
+    "fields": {
+      "game": 2,
+      "player": 2,
+      "score": 1456,
+      "date_time": "1987-04-12T23:20:50.52Z"
+    }
+  },
+  {
+    "model": "store.ownedgame",
+    "pk": 1,
+    "fields": {
+      "player": 1,
+      "game": 1,
+      "game_state": ""
+    }
+  },
+  {
+    "model": "store.ownedgame",
+    "pk": 2,
+    "fields": {
+      "player": 1,
+      "game": 2,
+      "game_state": ""
+    }
+  },
+  {
+    "model": "store.purchase",
+    "pk": 1,
+    "fields": {
+      "player": 1,
+      "game": 2,
+      "date_time": "1985-04-12T23:20:50.52Z",
+      "fee": 7
+    }
+  },
+  {
+    "model": "store.purchase",
+    "pk": 2,
+    "fields": {
+      "player": 1,
+      "game": 1,
+      "date_time": "1986-04-12T23:20:50.52Z",
+      "fee": 4.20
+    }
+  }
+]
