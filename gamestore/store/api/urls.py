@@ -4,7 +4,7 @@ from store.api.views import *
 urlpatterns = patterns('',
     # MG: hopefully these patters are not too confusing... (they should work though)
     #
-    # Basically: dev, name and tagged are all optional and can appear in any order (meaning that there are 6 combinations, thus the size patterns below).
+    # Basically: dev, name and tagged are all optional and can appear in any order (meaning that there are 6 combinations, thus the six patterns below).
     # Arguments of the named groups (?P<groupname>) get passed tp api_view as keyword arguments.
     #
     # Note that this regex expects only ascii characters in game names, dev names and tags (which should be good practice for URLs anyway).
