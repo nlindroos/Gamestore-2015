@@ -1,5 +1,6 @@
 from django.http import HttpResponse, Http404
-from django.shortcuts import render_to_response
+from django.shortcuts import render
+from store.models import *
 
 # Create your views here.
 
@@ -30,11 +31,12 @@ def my_games_view(request):
     return HttpResponse('Welcome to my games. Not implemented')
     
 def play_view(request, game):
-    return HttpResponse('''Welcome to play. Not implemented
-
---DEBUG--
-You are playing: {}'''.format(game), content_type='text/plain')
-        
+    """
+    game: DB primary key of the game
+    """
+    g = Game.objects.get(pk=game)
+    return render(request, 'store/playgame.html', {'gamename' : g.title, 'gameurl' : g.url})
+            
 def checkout_view(request):
     return HttpResponse('Welcome to checkou. Not implemented')    
     

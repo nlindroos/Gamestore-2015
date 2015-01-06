@@ -40,6 +40,14 @@
     }
   },
   {
+    "model": "store.developer",
+    "pk": 4,
+    "fields": {
+      "name": "WSD Course Staff",
+      "email": "wsd@domain.com"
+    }
+  },
+  {
     "model": "store.game",
     "pk": 1,
     "fields": {
@@ -71,6 +79,17 @@
       "price": 0,
       "tags": "adventure, text_game"
     }
+  },
+  {
+     "model": "store.game",
+     "pk": 4,
+     "fields": {
+       "developer": 4,
+       "title": "Example Game",
+       "url": "http://webcourse.cs.hut.fi/game.html",
+       "price": 0,
+       "tags": "adventure, text_game"
+     }
   },
   {
     "model": "store.highscore",
