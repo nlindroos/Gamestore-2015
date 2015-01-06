@@ -8,7 +8,7 @@ urlpatterns = patterns('',
 
     url(r'^login$', login_view),
     url(r'^signup$', signup_view),
-    url(r'^allgames$', all_games_view),
+    url(r'^(?:allgames)?$', all_games_view),
     url(r'^mygames$', my_games_view),
     url(r'^mygames/(\w+)$', play_view),
     url(r'^checkout$', checkout_view),
