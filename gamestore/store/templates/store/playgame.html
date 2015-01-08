@@ -4,3 +4,40 @@
 <iframe id="gameframe" src="{{ gameurl }}"></iframe>
 <button id="savebutton">Save</button>
 <button id="loadbutton">Load</button>
+
+<script>
+    $(document).ready( function() {
+        "use strict";
+        
+        window.addEventListener("message", function(event) {
+            if (event.origin !== "{{ gameurl }}")
+                return;
+            
+            if (event.data.messageType === "SAVE") {
+                //save the gamestate
+                $.ajax({
+                    "url" : "../save",
+                    "type" : "POST",
+                    "data" : event.data.gameState
+                });
+            }
+            else if (event.data.messageType === "LOAD_REQUEST") {
+                //load a gamestate and send it back via postMessage
+                $.getJSON("../save", function(data) {
+                    $("#gameframe").get(0).postMessage({
+                       "messageType" : "LOAD",
+                        "gameState" : data.gameState
+                    });
+                });
+            }
+            else if (event.data.messageType === "SCORE") {
+                //save a score
+                $.ajax({
+                    "url" : "../scores",
+                    "type" : "POST",
+                    "data" : event.data.score
+                });
+            }
+        }, false)
+    })
+</script>
