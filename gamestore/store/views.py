@@ -29,11 +29,11 @@ def signup_view(request):
 def all_games_view(request):
     return HttpResponse('Welcome to all games. Not implemented')
  
-@login_required  
+#@login_required  
 def my_games_view(request):
     return HttpResponse('Welcome to my games. Not implemented')
 
-@login_required
+#@login_required
 def play_view(request, game):
     """
     Args:
@@ -53,15 +53,15 @@ def play_view(request, game):
         
     return render(request, 'store/playgame.html', {'gamename' : g.title, 'gameurl' : g.url, 'gameid' : game})
         
-@login_required    
+#@login_required    
 def checkout_view(request):
     return HttpResponse('Welcome to checkout. Not implemented')    
     
-@login_required
+#@login_required
 def developer_view(request):
     return HttpResponse('Welcome to developer. Not implemented')
 
-@login_required    
+#@login_required    
 def gamestate_ajax_view(request, game):
     
     # make sure that only owned games are playable:

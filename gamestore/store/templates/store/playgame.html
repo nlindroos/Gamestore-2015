@@ -1,9 +1,17 @@
-{# % extends "base.html" % #}
+{% extends "store/base.html" %}
 
-<h1>{{ gamename }}</h1>
-<iframe id="gameframe" src="{{ gameurl }}"></iframe>
-<button id="savebutton">Save</button>
-<button id="loadbutton">Load</button>
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12">
+            <h1>{{ gamename }}</h1>
+            <iframe id="gameframe" src="{{ gameurl }}"></iframe>
+            <button id="savebutton">Save</button>
+            <button id="loadbutton">Load</button>
+        </div>
+    </div>
+</div>
+
 
 <script>
     $(document).ready( function() {
@@ -38,6 +46,7 @@
                     "data" : event.data.score
                 });
             }
-        }, false)
-    })
+        }, false);
+    });
 </script>
+{% endblock %}
