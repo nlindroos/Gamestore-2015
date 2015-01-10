@@ -18,7 +18,7 @@
         "use strict";
         
         window.addEventListener("message", function(event) {
-            if (event.origin !== "{{ gameurl }}")
+            if (event.origin !== "{{ gameurl }}") //how to do this when script is placed in a static file, just go with '*' ?
                 return;
             
             if (event.data.messageType === "SAVE") {
@@ -26,7 +26,7 @@
                 $.ajax({
                     "url" : "../save",
                     "type" : "POST",
-                    "data" : event.data.gameState
+                    "data" : {"gamestate" : JSON.stringify(event.data.gameState)}
                 });
             }
             else if (event.data.messageType === "LOAD_REQUEST") {
@@ -34,7 +34,7 @@
                 $.getJSON("../save", function(data) {
                     $("#gameframe").get(0).postMessage({
                        "messageType" : "LOAD",
-                        "gameState" : data.gameState
+                        "gameState" : data.gameState //do we need to JSON.parse() ?
                     });
                 });
             }
@@ -43,7 +43,7 @@
                 $.ajax({
                     "url" : "../scores",
                     "type" : "POST",
-                    "data" : event.data.score
+                    "data" : {"score" : JSON.stringify(event.data.score)}
                 });
             }
         }, false);
