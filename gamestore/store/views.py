@@ -65,7 +65,7 @@ def developer_view(request):
 def gamestate_ajax_view(request, game):
     
     # make sure that only owned games are playable:
-    g = get_owned_game(request, game)
+    g = None
     try:
         g = OwnedGame.objects.get(player=request.user.pk, game=game)
     except:
