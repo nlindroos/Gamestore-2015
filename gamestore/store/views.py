@@ -2,6 +2,8 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
+from datetime import utcnow
+
 from store.models import *
 
 # Create your views here.
@@ -65,7 +67,7 @@ def developer_view(request):
 def gamestate_ajax_view(request, game):
     
     # make sure that only owned games are playable:
-    g = get_owned_game(request, game)
+    g = None
     try:
         g = OwnedGame.objects.get(player=request.user.pk, game=game)
     except:
@@ -73,7 +75,7 @@ def gamestate_ajax_view(request, game):
         raise Http404('')
 
     if request.method == "GET":
-        return HttpResponse(g.gamestate, content_type="application/json")
+        return HttpResponse(g.game_state, content_type="application/json")
     
     # not sure if there's any way to prevent people from just POSTing fake gamestates
     elif request.method == "POST":
@@ -89,4 +91,23 @@ def gamestate_ajax_view(request, game):
                 return HttpResponse("Game state saved successfully!", content_type="text/plain")
         else:
             raise Http404('')
+
+#@login_required            
+def gamescore_ajax_view(request, game):
+    
+    # make sure that only owned games can be saved to:
+    g = None
+    try:
+        g = OwnedGame.objects.get(player=request.user.pk, game=game)
+    except:
+        # no such game or player doesn't own the game
+        raise Http404('')
+    
+    if request.method == "POST" and request.is_ajax():
+        try:
+            score = Highscore(game=game, player=request.user.pk, score=request.POST['score'])
+        except:
+            raise Http404('')
+    else:
+        raise Http404('')
         

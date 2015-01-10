@@ -14,5 +14,6 @@ urlpatterns = patterns('',
     url(r'^checkout/?$', checkout_view),
     url(r'^dev/?$', developer_view),
     url(r'^mygames/(\w+)/save$', gamestate_ajax_view),
+    url(r'^mygames/(\w+)/scores$', gamescore_ajax_view),
     url(r'^game_api/v1/', include('store.api.urls')),
 )
