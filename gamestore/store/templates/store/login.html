@@ -1,3 +1,28 @@
-{% extends "base.html" %}
+{% extends "store/base.html" %}
+{% load staticfiles %}
 
+{% block head %}
+<link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/login.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container" id="signin-form">
+    <form>
+        <h2>Sign in</h2>
+        <div class="form-group">
+            <label for="userName" class="sr-only">Email address</label>
+            <input type="text" id="userName" placeholder="Username" autocomplete="on" required autofocus>
+        </div>
+        <div class="form-group">
+            <label for="password" class="sr-only">Password</label>
+            <input type="password" id="password" placeholder="Password" required>
+        </div>
+        <button type="submit" class="btn btn-default">Log in</button>
+    </form>
+    <br><div><a href="#">Not yet a member? Sign up here.</a></div>
+</div>
+
+
+
+{% endblock %}
 

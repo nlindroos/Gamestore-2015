@@ -6,7 +6,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'gamestore.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
-    url(r'^login/?$', 'django.contrib.auth.views.login', {'template_name': 'store/login.html'}),
+    url(r'^login/?$', login_view), #'django.contrib.auth.views.login', {'template_name': 'store/login.html'}),
     url(r'^signup/?$', signup_view),
     url(r'^(?:allgames)?/?$', all_games_view),
     url(r'^mygames/?$', my_games_view),
