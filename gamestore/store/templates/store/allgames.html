@@ -1,5 +1,12 @@
 {% extends "store/base.html" %}
 
+{% load staticfiles %}
+
+{% block head %}
+<script src="{% static 'store/js/jquery-1.11.2.min.js' %}"></script>
+<script src="{% static 'store/js/allgames_filter.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
     <h1>Games</h1>
@@ -19,7 +26,7 @@
         <input id="price_filter_high" type="text" class="form-control" placeholder="unlimited" aria-describedby="price_filter_addon2">
     </div>
 </div>
-<div style="height:500px;overflow:auto;" class="container">
+<div id="gamelist" style="height:500px;overflow:auto;" class="container">
     {% for g in games %}
     <h3>{{ g.title }}</h3>
     <div class="row">
