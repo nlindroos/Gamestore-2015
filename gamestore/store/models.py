@@ -26,6 +26,9 @@ class Game(models.Model):
     url = models.URLField()
     price = models.DecimalField(max_digits=5, decimal_places=2)
     tags = models.TextField()
+    
+    def get_tags(self):
+        return self.tags.split(',')
 
 class Highscore(models.Model):
     def __str__(self):

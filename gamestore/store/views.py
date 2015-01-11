@@ -29,7 +29,12 @@ def signup_view(request):
     return HttpResponse('Welcome to signup. Not implemented')
     
 def all_games_view(request):
-    return HttpResponse('Welcome to all games. Not implemented')
+    games = Game.objects.all()
+    if request.user.is_authenticated():
+        owned_games = set(x.pk for x in OwnedGame.objects.filter(player=request.user.pk))
+        return render(request, 'store/allgames.html', {'games' : games, 'owned' : owned_games})
+    return render(request, 'store/allgames.html', {'games' : games, 'owned' : set()})
+    #return HttpResponse('Welcome to all games. Not implemented')
  
 #@login_required  
 def my_games_view(request):
