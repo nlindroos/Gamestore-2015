@@ -2,7 +2,7 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
-from datetime import utcnow
+#from datetime import utcnow
 
 from store.models import *
 
@@ -23,7 +23,7 @@ def my_view(request):
             # Return a 'disabled account' error message
     else:
         # Return an 'invalid login' error message.'''
-    return HttpResponse('Welcome to login. Not implemented')
+    return render(request, 'store/login.html')
     
 def signup_view(request):
     return HttpResponse('Welcome to signup. Not implemented')
