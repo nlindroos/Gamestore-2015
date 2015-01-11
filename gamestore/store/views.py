@@ -1,5 +1,7 @@
-from django.http import HttpResponse, Http404
-from django.shortcuts import render
+from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.shortcuts import render, render_to_response
+from django.contrib import auth
+from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 
 #from datetime import utcnow
@@ -9,21 +11,29 @@ from store.models import *
 # Create your views here.
 
 def login_view(request):
-    '''from django.contrib.auth import authenticate, login
-
-def my_view(request):
-    username = request.POST['username']
-    password = request.POST['password']
-    user = authenticate(username=username, password=password)
-    if user is not None:
-        if user.is_active:
-            login(request, user)
-            # Redirect to a success page.
-        else:
-            # Return a 'disabled account' error message
+    if request.user.is_authenticated():
+        return render(request, 'store/loggedin.html')
     else:
-        # Return an 'invalid login' error message.'''
-    return render(request, 'store/login.html')
+        c = {}
+        c.update(csrf(request))
+        return render_to_response('store/login.html', c)
+    
+def auth_view(request):
+    username = request.POST.get('username', '')
+    password = request.POST.get('password', '')
+    user = auth.authenticate(username=username, password=password)
+    if user is not None:
+        auth.login(request, user)
+        return render(request, 'store/loggedin.html')
+    else:
+        return render(request, 'store/login.html')
+
+def loggedin(request):
+    return render_to_response('store/loggedin.html')
+    
+def logout_view(request):
+    auth.logout(request)
+    return render_to_response('store/logout.html')
     
 def signup_view(request):
     return HttpResponse('Welcome to signup. Not implemented')
