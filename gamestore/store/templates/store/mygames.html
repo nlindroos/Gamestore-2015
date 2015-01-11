@@ -1,2 +1,35 @@
 {% extends "store/base.html" %}
 
+{% block content %}
+<div class="container">
+    {% for g in games %}
+        <h3>{{ g.title }}</h3>
+        <div class="row">
+            <div class="col-md-2">
+                <img src="" alt="picture of game"></img>
+            </div>
+            <div class="col-md-6">
+                <p>Description</p>
+            </div>
+            <div class="col-md-2">
+                <span>Tags: </span>
+                <ul>
+                {% for t in g.get_tags %}
+                    <li>{{ t }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
+    {% if not games %}
+        <div><p>You do not own any games.</p></div>
+    {% endif %}
+</div>
+
+
+
+{% endblock %}
+
+
+
+

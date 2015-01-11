@@ -60,7 +60,8 @@ def all_games_view(request):
  
 @login_required  
 def my_games_view(request):
-    return HttpResponse('Welcome to my games. Not implemented')
+    games = OwnedGame.objects.filter(player=request.user.pk)
+    return render(request, 'store/mygames.html', {'games': games})
 
 @login_required
 def play_view(request, game):
