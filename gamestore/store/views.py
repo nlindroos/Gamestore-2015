@@ -3,6 +3,7 @@ from django.shortcuts import render, render_to_response
 from django.contrib import auth
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 
 #from datetime import utcnow
 
@@ -36,7 +37,18 @@ def logout_view(request):
     return render_to_response('store/logout.html')
     
 def signup_view(request):
-    return HttpResponse('Welcome to signup. Not implemented')
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():             #TODO: Extend with email validation
+            form.save()   
+            return HttpResponseRedirect('/signup_success')    
+    args = {}
+    args.update(csrf(request))
+    args['form'] = UserCreationForm()
+    return render_to_response('store/signup.html', args)
+
+def signup_success_view(request):
+    return render_to_response('store/signup_success.html')
     
 def all_games_view(request):
     games = Game.objects.all()
