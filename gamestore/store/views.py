@@ -106,6 +106,7 @@ def gamescore_ajax_view(request, game):
     if request.method == "POST" and request.is_ajax():
         try:
             score = Highscore(game=game, player=request.user.pk, score=request.POST['score'])
+            score.save()
         except:
             raise Http404('')
     else:
