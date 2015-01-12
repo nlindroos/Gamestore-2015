@@ -5,7 +5,6 @@ from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm
 
-#from datetime import utcnow
 #http://bradmontgomery.blogspot.fi/2009/04/restricting-access-by-group-in-django.html
 
 from store.models import *
@@ -30,6 +29,10 @@ def is_developer(user):
 
 
 # Create your views here.
+
+def denied_view(request):
+    return HttpResponse('Welcome to denied. Not implemented')
+    
 
 def login_view(request):
     if request.user.is_authenticated():
@@ -79,13 +82,13 @@ def all_games_view(request):
     #return HttpResponse('Welcome to all games. Not implemented')
  
 @login_required
-@user_passes_test(is_user, denied_view)
+@user_passes_test(is_player)
 def my_games_view(request):
     games = OwnedGame.objects.filter(player=request.user.pk)
     return render(request, 'store/mygames.html', {'games': games})
 
 @login_required
-@user_passes_test(is_user, denied_view)
+@user_passes_test(is_player)
 def play_view(request, game):
     """
     Args:
@@ -106,17 +109,17 @@ def play_view(request, game):
     return render(request, 'store/playgame.html', {'gamename' : g.title, 'gameurl' : g.url, 'gameid' : game})
         
 @login_required
-@user_passes_test(is_user, denied_view)
+@user_passes_test(is_player)
 def checkout_view(request):
     return HttpResponse('Welcome to checkout. Not implemented')    
     
 @login_required
-@user_passes_test(is_developer, denied_view)
+@user_passes_test(is_developer)
 def developer_view(request):
     return HttpResponse('Welcome to developer. Not implemented')
 
 @login_required
-@user_passes_test(is_user, denied_view)   
+@user_passes_test(is_player)   
 def gamestate_ajax_view(request, game):
     
     # make sure that only owned games are playable:
@@ -146,7 +149,7 @@ def gamestate_ajax_view(request, game):
             raise Http404('')
 
 @login_required     
-@user_passes_test(is_user, denied_view)       
+@user_passes_test(is_player)       
 def gamescore_ajax_view(request, game):
     
     # make sure that only owned games can be saved to:
