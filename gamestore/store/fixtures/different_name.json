@@ -1,14 +1,6 @@
 [
   {
     "model": "store.player",
-    "pk": 1,
-    "fields": {
-      "name": "John",
-      "email": "john@domain.com"
-    }
-  },
-  {
-    "model": "store.player",
     "pk": 2,
     "fields": {
       "name": "Paul",

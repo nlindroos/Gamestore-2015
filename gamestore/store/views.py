@@ -60,8 +60,7 @@ def all_games_view(request):
  
 @login_required  
 def my_games_view(request):
-    games = OwnedGame.objects.filter(player=request.user.pk)
-    return render(request, 'store/mygames.html', {'games': games})
+    return render(request, 'store/mygames.html', {'owned_games': request.user.game_set()})
 
 @login_required
 def play_view(request, game):
