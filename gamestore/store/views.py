@@ -163,13 +163,14 @@ def gamescore_ajax_view(request, game):
     except:
         # no such game or player doesn't own the game
         raise Http404('')
-    
     if request.method == "POST" and request.is_ajax():
         try:
-            score = Highscore(game=game, player=request.user.pk, score=request.POST['score'])
-            score.save()
+            score = Highscore(game=Game.objects.get(pk=game), player=request.user, score=request.POST['score'])
         except:
             raise Http404('')
+        else:
+            score.save()
+            return HttpResponse("Highscore saved successfully!", content_type="text/plain")
     else:
         raise Http404('')
         

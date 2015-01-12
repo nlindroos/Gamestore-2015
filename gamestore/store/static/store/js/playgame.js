@@ -62,6 +62,16 @@ $(document).ready( function() {
                 "data" : {
                     "gamestate" : JSON.stringify(event.data.gameState)
                 }
+            }).done(function() {
+                $("#gameframe").get(0).contentWindow.postMessage({
+                   "messageType" : "MESSAGE",
+                    "message" : "Game state saved succesfully!"
+                }, event.origin);
+            }).fail(function() {
+                $("#gameframe").get(0).contentWindow.postMessage({
+                   "messageType" : "MESSAGE",
+                    "message" : "Saving game state failed."
+                }, event.origin);
             });
         }
         else if (event.data.messageType === "LOAD_REQUEST") {
@@ -71,7 +81,17 @@ $(document).ready( function() {
                    "messageType" : "LOAD",
                     "gameState" : data //this data is just the gamestate, see views.py
                 }, event.origin);
-            });
+            }).done(function() {
+                $("#gameframe").get(0).contentWindow.postMessage({
+                   "messageType" : "MESSAGE",
+                    "message" : "Game state loaded succesfully!"
+                }, event.origin);
+            }).fail(function() {
+                $("#gameframe").get(0).contentWindow.postMessage({
+                   "messageType" : "MESSAGE",
+                    "message" : "Loading game state failed."
+                }, event.origin);
+            });;
         }
         else if (event.data.messageType === "SCORE") {
             //save a score
@@ -81,6 +101,16 @@ $(document).ready( function() {
                 "data" : {
                     "score" : JSON.stringify(event.data.score)
                 }
+            }).done(function() {
+                $("#gameframe").get(0).contentWindow.postMessage({
+                   "messageType" : "MESSAGE",
+                    "message" : "Game score saved succesfully!"
+                }, event.origin);
+            }).fail(function() {
+                $("#gameframe").get(0).contentWindow.postMessage({
+                   "messageType" : "MESSAGE",
+                    "message" : "Saving game score failed."
+                }, event.origin);
             });
         }
     }, false);
