@@ -1,5 +1,48 @@
 [
   {
+<<<<<<< HEAD
+=======
+    "model": "store.player",
+    "pk": 2,
+    "fields": {
+      "name": "Paul",
+      "email": "paul@domain.com"
+    }
+  },
+  {
+    "model": "store.developer",
+    "pk": 1,
+    "fields": {
+      "name": "Martin",
+      "email": "martin@domain.com"
+    }
+  },
+  {
+    "model": "store.developer",
+    "pk": 2,
+    "fields": {
+      "name": "Johan",
+      "email": "johan@domain.com"
+    }
+  },
+  {
+    "model": "store.developer",
+    "pk": 3,
+    "fields": {
+      "name": "Niklas",
+      "email": "niklas@domain.com"
+    }
+  },
+  {
+    "model": "store.developer",
+    "pk": 4,
+    "fields": {
+      "name": "WSD Course Staff",
+      "email": "wsd@domain.com"
+    }
+  },
+  {
+>>>>>>> c71aafc19f1612e8030f259695cf22a809da5526
     "model": "store.game",
     "pk": 1,
     "fields": {
