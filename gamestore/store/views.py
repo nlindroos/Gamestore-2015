@@ -25,7 +25,7 @@ def auth_view(request):
     user = auth.authenticate(username=username, password=password)
     if user is not None:
         auth.login(request, user)
-        return render(request, 'store/loggedin.html')
+        return render(request, 'store/mygames.html')
     else:
         return render(request, 'store/login.html')
 
