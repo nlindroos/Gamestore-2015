@@ -12,7 +12,7 @@ from store.models import *
 def is_player(user):
     if user:
         try:
-            user.groups.get(name='Player')
+            user.groups.get(name='Players')
         except:
             return False
         else:
@@ -21,7 +21,7 @@ def is_player(user):
 def is_developer(user):
     if user:
         try:
-            user.groups.get(name='Developer')
+            user.groups.get(name='Developers')
         except:
             return False
         else:
