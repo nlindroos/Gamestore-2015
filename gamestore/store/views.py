@@ -138,7 +138,8 @@ def gamestate_ajax_view(request, game):
         #   gamestate should be a be a JSON string in a form input called 'gamestate'
         if request.is_ajax():
             try:
-                g.gamestate = request.POST['gamestate']
+                g.game_state = request.POST['gamestate']
+                print(request.POST['gamestate'])
             except KeyError:
                 return HttpResponse("No game state given, no changes saved")
             else:
