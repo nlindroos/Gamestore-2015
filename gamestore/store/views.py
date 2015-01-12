@@ -84,7 +84,11 @@ def all_games_view(request):
 @login_required
 @user_passes_test(is_player, "/denied")
 def my_games_view(request):
-    return render(request, 'store/mygames.html', {'owned_games': request.user.game_set()})
+    owned_games = request.user.ownedgame_set.all()
+    game_set = []
+    for game in owned_games:
+        game_set.append(game.game)
+    return render(request, 'store/mygames.html', {'game_set': game_set})
 
 @login_required
 @user_passes_test(is_player, "/denied")

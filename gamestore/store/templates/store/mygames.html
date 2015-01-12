@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="container">
-    {% for g in owned_games %}
-        <h3>Game {{ g.title }}</h3>
+    {% for g in game_set %}
+        <h3>{{ g.title }}</h3>
         <div class="row">
             <div class="col-md-2">
                 <img src="" alt="picture of game"></img>
@@ -21,7 +21,7 @@
             </div>
         </div>
     {% endfor %}
-    {% if not owned_games %}
+    {% if not game_set %}
         <div><p>You do not own any games.</p></div>
     {% endif %}
 </div>
