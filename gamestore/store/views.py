@@ -2,12 +2,32 @@ from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import render, render_to_response
 from django.contrib import auth
 from django.core.context_processors import csrf
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm
 
 #from datetime import utcnow
+#http://bradmontgomery.blogspot.fi/2009/04/restricting-access-by-group-in-django.html
 
 from store.models import *
+
+def is_player(user):
+    if user:
+        try:
+            user.groups.get(name='Player')
+        except:
+            return False
+        else:
+            return True
+    
+def is_developer(user):
+    if user:
+        try:
+            user.groups.get(name='Developer')
+        except:
+            return False
+        else:
+            return True
+
 
 # Create your views here.
 
@@ -52,18 +72,20 @@ def signup_success_view(request):
     
 def all_games_view(request):
     games = Game.objects.all()
-    if request.user.is_authenticated():
+    if request.user.is_authenticated() and is_player(request.user):
         owned_games = set(x.pk for x in OwnedGame.objects.filter(player=request.user.pk))
         return render(request, 'store/allgames.html', {'games' : games, 'owned' : owned_games})
     return render(request, 'store/allgames.html', {'games' : games, 'owned' : set()})
     #return HttpResponse('Welcome to all games. Not implemented')
  
-@login_required  
+@login_required
+@user_passes_test(is_user, denied_view)
 def my_games_view(request):
     games = OwnedGame.objects.filter(player=request.user.pk)
     return render(request, 'store/mygames.html', {'games': games})
 
 @login_required
+@user_passes_test(is_user, denied_view)
 def play_view(request, game):
     """
     Args:
@@ -83,15 +105,18 @@ def play_view(request, game):
         
     return render(request, 'store/playgame.html', {'gamename' : g.title, 'gameurl' : g.url, 'gameid' : game})
         
-@login_required    
+@login_required
+@user_passes_test(is_user, denied_view)
 def checkout_view(request):
     return HttpResponse('Welcome to checkout. Not implemented')    
     
 @login_required
+@user_passes_test(is_developer, denied_view)
 def developer_view(request):
     return HttpResponse('Welcome to developer. Not implemented')
 
-@login_required    
+@login_required
+@user_passes_test(is_user, denied_view)   
 def gamestate_ajax_view(request, game):
     
     # make sure that only owned games are playable:
@@ -120,7 +145,8 @@ def gamestate_ajax_view(request, game):
         else:
             raise Http404('')
 
-@login_required            
+@login_required     
+@user_passes_test(is_user, denied_view)       
 def gamescore_ajax_view(request, game):
     
     # make sure that only owned games can be saved to:
