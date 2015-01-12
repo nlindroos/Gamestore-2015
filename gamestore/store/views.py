@@ -31,7 +31,7 @@ def is_developer(user):
 # Create your views here.
 
 def denied_view(request):
-    return HttpResponse('Welcome to denied. Not implemented')
+    return render(request, 'store/denied.html')
     
 
 def login_view(request):
@@ -82,13 +82,13 @@ def all_games_view(request):
     #return HttpResponse('Welcome to all games. Not implemented')
  
 @login_required
-@user_passes_test(is_player)
+@user_passes_test(is_player, "/denied")
 def my_games_view(request):
     games = OwnedGame.objects.filter(player=request.user.pk)
     return render(request, 'store/mygames.html', {'games': games})
 
 @login_required
-@user_passes_test(is_player)
+@user_passes_test(is_player, "/denied")
 def play_view(request, game):
     """
     Args:
@@ -109,17 +109,17 @@ def play_view(request, game):
     return render(request, 'store/playgame.html', {'gamename' : g.title, 'gameurl' : g.url, 'gameid' : game})
         
 @login_required
-@user_passes_test(is_player)
+@user_passes_test(is_player, "/denied")
 def checkout_view(request):
     return HttpResponse('Welcome to checkout. Not implemented')    
     
 @login_required
-@user_passes_test(is_developer)
+@user_passes_test(is_developer, "/denied")
 def developer_view(request):
     return HttpResponse('Welcome to developer. Not implemented')
 
 @login_required
-@user_passes_test(is_player)   
+@user_passes_test(is_player, "/denied")   
 def gamestate_ajax_view(request, game):
     
     # make sure that only owned games are playable:
@@ -149,7 +149,7 @@ def gamestate_ajax_view(request, game):
             raise Http404('')
 
 @login_required     
-@user_passes_test(is_player)       
+@user_passes_test(is_player, "/denied")       
 def gamescore_ajax_view(request, game):
     
     # make sure that only owned games can be saved to:
