@@ -53,5 +53,4 @@ class Purchase(models.Model):
     game = models.ForeignKey(Game)
     date_time = models.DateTimeField(auto_now_add=True)
     fee = models.DecimalField(max_digits=5, decimal_places=2)
-    # Should we use ForeignKey to Game.price for fee? (fee=models.ForeignKey(Game, related_name="price"))
 
