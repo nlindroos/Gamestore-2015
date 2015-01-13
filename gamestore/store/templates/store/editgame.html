@@ -1,0 +1,64 @@
+{% extends "store/base.html" %}
+
+{% block content %}
+    <div class="container">
+        <h1>Edit game: {{ game.title }}</h1>
+        {% if form.errors %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }}</strong>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <form method="post"> {% csrf_token %}
+            <div class="form-group">
+                <label for="title">Title:</label>
+                {% if form.title.errors %}
+                    {% for error in form.title.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <input id="title" name="title" type="text" value="{{ game.title }}" placeholder="{{ game.title }}" class="form-control"></input>
+                <label for="url">URL:</label>
+                {% if form.url.errors %}
+                    {% for error in form.url.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <input id="url" name="url" type="url" value="{{ game.url }}" placeholder="{{ game.url }}" class="form-control"></input>
+                <label for="price">Price:</label>
+                {% if form.price.errors %}
+                    {% for error in form.price.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <input id="price" name="price" type="number" value="{{ game.price }}" placeholder="{{ game.price }}" class="form-control"></input>
+                <label for="description">Description:</label>
+                {% if form.description.errors %}
+                    {% for error in form.description.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <textarea id="description" name="description" placeholder="{{ game.description }}" class="form-control">{{ game.description }}</textarea>
+                <label for="tags">Tags:</label>
+                {% if form.tags.errors %}
+                    {% for error in form.tags.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <textarea id="tags" name="tags" placeholder="{{ game.get_tags_formatted }}" class="form-control">{{ game.get_tags_formatted }}</textarea>
+                <input type="submit" value="Save changes"></input>
+            </div>
+        </form>
+    </div>
+{% endblock %}

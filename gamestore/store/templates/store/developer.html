@@ -1,0 +1,41 @@
+{% extends "store/base.html" %}
+
+{% block content %}
+    <div class="container">
+        <h1>Developer page</h1>
+        <p>Welcome, {{ devname }}!</p>
+        <p>This page shows your games and how they have sold (we hope you're getting rich :P). 
+        <br>You can edit games by clicking their names in the table.</p>
+        <a class="btn btn-default" role="button" href="./newgame">Add new game</a>
+        {% if games %}
+        <div id="gamelist" class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Current Price</th>
+                        <th>Times Bought</th>
+                        <th>Total Sales</th>               
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in games %}
+                    <tr>
+                        <td><a href="./editgame/{{ g.pk }}">{{ g.title }}</a></td>
+                        <td>{{ g.price }} €</td>
+                        <td>{{ g.purchase__count }}</td>
+                        {% if g.purchase__fee__sum == None %}
+                        <td>0 €</td>
+                        {% else %}
+                        <td>{{ g.purchase__fee__sum }} €</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>You have not uploaded any games.</p>
+        {% endif %}
+    </div>
+{% endblock %}

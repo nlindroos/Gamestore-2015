@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 
 # NOTE: Django sets variables names from e.g. player to player_id in the db when ForeignKey is used, but we only need to use player to refer to this field.
 
@@ -19,17 +20,28 @@ class Developer(models.Model):
     email = models.EmailField(max_length=254)
 '''
 
+def validate_price(price):
+    if price < 0:
+        raise ValidationError("Price must be non-negative")
+
 class Game(models.Model):
     def __str__(self):
         return self.title
     developer = models.ForeignKey(User, limit_choices_to={'groups__name': "Developers"})
-    title = models.CharField(max_length=60)	# Added title, not defined in the project plan
-    url = models.URLField()
-    price = models.DecimalField(max_digits=5, decimal_places=2)
+    title = models.CharField(max_length=60, blank=False)	# Added title, not defined in the project plan
+    url = models.URLField(blank=False)
+    price = models.DecimalField(max_digits=5, decimal_places=2, null=False, default=0.00, validators=[validate_price])
     tags = models.TextField()
+    description = models.TextField(default='')
     
     def get_tags(self):
         return self.tags.split(',')
+        
+    def get_tags_formatted(self):
+        """
+        Returns a string with each tag on a new line
+        """
+        return self.tags.replace(',', '\n')
 
 class Highscore(models.Model):
     def __str__(self):
@@ -53,5 +65,5 @@ class Purchase(models.Model):
     player = models.ForeignKey(User, limit_choices_to={'groups__name': "Players"})
     game = models.ForeignKey(Game)
     date_time = models.DateTimeField(auto_now_add=True)
-    fee = models.DecimalField(max_digits=5, decimal_places=2)
+    fee = models.DecimalField(max_digits=5, decimal_places=2, null=False, default=0.00)
 

@@ -4,6 +4,9 @@ from django.contrib import auth
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm
+from django.db.models import Count, Min, Sum, Avg
+from django.forms.models import modelform_factory
+import re
 
 #http://bradmontgomery.blogspot.fi/2009/04/restricting-access-by-group-in-django.html
 
@@ -26,6 +29,8 @@ def is_developer(user):
             return False
         else:
             return True
+            
+GameForm = modelform_factory(Game, fields=('title', 'url', 'price', 'description', 'tags'))
 
 
 # Create your views here.
@@ -79,7 +84,6 @@ def all_games_view(request):
         owned_games = set(x.pk for x in OwnedGame.objects.filter(player=request.user.pk))
         return render(request, 'store/allgames.html', {'games' : games, 'owned' : owned_games})
     return render(request, 'store/allgames.html', {'games' : games, 'owned' : set()})
-    #return HttpResponse('Welcome to all games. Not implemented')
  
 @login_required
 @user_passes_test(is_player, "/denied")
@@ -119,7 +123,62 @@ def checkout_view(request):
 @login_required
 @user_passes_test(is_developer, "/denied")
 def developer_view(request):
-    return HttpResponse('Welcome to developer. Not implemented')
+    games = Game.objects.filter(developer=request.user).annotate(Sum('purchase__fee')).annotate(Count('purchase'))
+    # TODO: remove prints!!!!
+    print(games.query)
+    print(list(games))
+    
+    return render(request, 'store/developer.html', {'games' : games, 'devname' : request.user.username})
+
+@login_required
+@user_passes_test(is_developer, "/denied")
+def dev_game_edit_view(request, game):
+    try:
+        g = Game.objects.get(developer=request.user, pk=game)
+    except:
+        raise Http404('')
+    
+    if request.method == 'POST':
+        c = {}
+        c.update(csrf(request))     
+        f = GameForm(request.POST)
+        if f.is_valid():
+            g.title = f.cleaned_data['title']
+            g.url = f.cleaned_data['url']
+            g.price = f.cleaned_data['price']
+            g.description = f.cleaned_data['description']
+            # use regex to remove extra spaces and add omited commas
+            g.tags = re.sub(r',?(\s)+', ',', f.cleaned_data['tags'])
+            g.save()
+            c['game'] = g
+            return render(request, 'store/editgame.html', c)
+        else:
+            c['game'] = g
+            c['form'] = f
+            return render(request, 'store/editgame.html', c)
+    return render(request, 'store/editgame.html', {'game' : g})
+    
+@login_required
+@user_passes_test(is_developer, "/denied")
+def dev_new_game_view(request):
+    if request.method == 'POST':
+        c = {}
+        c.update(csrf(request))
+        f = GameForm(request.POST)
+        if f.is_valid():
+            g = Game(developer=request.user, 
+                     title=f.cleaned_data['title'], 
+                     url=f.cleaned_data['url'], 
+                     price=f.cleaned_data['price'],
+                     description=f.cleaned_data['description'],
+                     tags=re.sub(r',?(\s)+', ',', f.cleaned_data['tags']))
+            g.save()
+            c['game'] = g
+            return render(request, 'store/editgame.html', c)
+        else:
+            c['form'] = f
+            return render(request, 'store/newgame.html', c)
+    return render(request, 'store/newgame.html')
 
 @login_required
 @user_passes_test(is_player, "/denied")   
@@ -143,14 +202,12 @@ def gamestate_ajax_view(request, game):
         if request.is_ajax():
             try:
                 g.game_state = request.POST['gamestate']
-                print(request.POST['gamestate'])
             except KeyError:
                 return HttpResponse("No game state given, no changes saved")
             else:
                 g.save()
                 return HttpResponse("Game state saved successfully!", content_type="text/plain")
-        else:
-            raise Http404('')
+    raise Http404('')
 
 @login_required     
 @user_passes_test(is_player, "/denied")       
