@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Adventures of Save Button</title>
+        <meta charset="utf-8">
+        <style>
+        body {
+            background-color : MidnightBlue;
+            overflow : hidden;
+            font-family : "Lucida Console", Monaco, monospace;
+        }
+        #game_area {
+            background-color : black;
+            width : 100%;
+            height : 80vh;
+        }
+        #save_button {
+            width : 6vw;
+            height : 6vh;
+        }
+        .obstacle {
+            width : 2vw;
+            height : 2vh;
+            background-color : white;
+        }
+        #warning {
+            width : 2vw;
+            height : 2vh;
+            background-color : black;
+            border : 1px solid red;
+        }
+        #score_panel {
+            width : 100%;
+        }
+        #score_panel button {
+            font-size : 3vw;
+            width : 32%;
+        }
+        #info_text {
+            width : 100%;
+            font-size: 4vw;
+            color : LightSkyBlue;
+            background-color : LightSlateGray;
+            white-space: nowrap;
+            overflow: hidden;  
+            text-overflow: ellipsis;
+        }
+        </style>
+    </head>
+    <body>
+        <div id="score_panel">
+            <button id="load_button">Load Game (Q)</button>
+            <button id="pause_button">Pause Game (W)</button>
+            <button id="newgame_button">New Game (E)</button>
+            <div id="info_text">
+                <span>Time survived: </span><span id="time">0</span>
+                <span> | </span>
+                <span id="messages"></span>
+            </div>
+        </div>
+        <div id="game_area">
+            <button id="save_button">Save Game</button>
+            <div id="warning"></div>
+        </div>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" ></script>
+        <script>
+        "use strict";
+        
+        //storing some commonly used variables:
+        var button =  $("#save_button");
+        var game_area = $("#game_area");
+        var warning = $("#warning");
+        var offset_h = game_area.offset().left;
+        var offset_v = game_area.offset().top;
+        var height = game_area.outerHeight();
+        var width = game_area.outerWidth();
+        var btn_h = button.outerHeight();
+        var btn_w = button.outerWidth();
+        
+        //game variables, initialized by play_game()
+        var pause;
+        var time;
+        var x;
+        var y;
+        var obstacles;
+        
+        //handles for intervals (periodic events) used by the game,
+        //leave them undefined for now, play_game() sets them, game_over() clears them
+        var mainloop;
+        var obstacle_spawn;
+        var timer;
+        
+        //global functions:
+        function get_real_x(x_pos) {
+            /*
+            Returns the left offset for the percentage coordinate x_pos.
+            */
+            return offset_h + x_pos * width;
+        }
+        function get_real_y(y_pos) {
+            /*
+            Returns the top offset for the percentage coordinate y_pos.
+            */
+            return offset_v + y_pos * height;
+        }
+        function set_position(obj, x_pos, y_pos) {
+            /*
+            Moves obj to the percentage coordinates x_pos, y_pos.
+            */
+            var real_y = get_real_y(y_pos);
+            var real_x = get_real_x(x_pos);
+            obj.offset({'top' : real_y, 'left' : real_x});
+        }
+        function x_out_of_bounds(obj) {
+            /*
+            Returns true if obj is outside of the game area in x direction, otherwise returns false.
+            */
+            var xcoord = obj.offset().left;
+            if (xcoord + obj.outerWidth() > offset_h + width) return true;
+            if (xcoord < offset_h) return true;
+            return false;
+        }
+        function y_out_of_bounds(obj) {
+            /*
+            Returns true if obj is outside of the game area in y direction, otherwise returns false.
+            */
+            var ycoord = obj.offset().top;
+            if (ycoord + obj.outerHeight() > offset_v + height) return true;
+            if (ycoord < offset_v) return true;
+            return false;
+        }
+        function out_of_bounds(obj) {
+            /*
+            Returns true if obj is outside of the game area in any direction, otherwise returns false.
+            */
+            return x_out_of_bounds(obj) || y_out_of_bounds(obj);
+        }
+        function collide(obst) {
+            /*
+            Returns true if obst collides (overlaps) with button.
+            */
+            var l1 = obst.offset().left;
+            var r1 = l1 + obst.outerWidth();
+            var u1 = obst.offset().top;
+            var d1 = u1 + obst.outerHeight();
+            
+            
+            var l2 = button.offset().left;
+            var r2 = l2 + btn_w;
+            var u2 = button.offset().top;
+            var d2 = u2 + btn_h;
+            
+            return !(
+                (r1 < l2) || (l1 > r2)
+                ||
+                (u1 > d2) || (d1 < u2)
+            );
+        }
+        function game_over(send_score) {
+            /*
+            Ends the current game and sends the score to the game service (via postMessage).
+            */
+            
+            //inform player:
+            $("#messages").text("Game Over");
+            
+            //remove stuff:
+            button.hide();
+            warning.hide();
+            obstacles = [];
+            $(".obstacle").remove();
+            window.clearInterval(mainloop);
+            window.clearInterval(obstacle_spawn);
+            window.clearInterval(timer);
+            
+            //send highscore:
+            if (send_score)
+                window.parent.postMessage();
+        }
+        function new_game() {
+            game_over(false);
+            button.show();
+            warning.show();
+            $("#messages").text("New game started");
+            play_game();
+        }
+        function pause_game() {
+            pause = !pause;
+            if (pause) {
+                $("#messages").text("Paused");
+            }
+            else {
+                $("#messages").text("Resumed");
+            }
+        }
+        function load_request() {
+            var msg = {
+                "messageType": "LOAD_REQUEST",
+            };
+            window.parent.postMessage(msg, "*");
+        }
+        function save_game() {
+            y = button.offset().top / height;
+            x = button.offset().left / width;
+            var obstacles_data = [];
+            for (var i = 0; i < obstacles.length; i++) {
+                obstacles_data.push({
+                    "speedX" : obstacles[i].speedX,
+                    "speedY" : obstacles[i].speedY,
+                    "x" : obstacles[i].x,
+                    "y" : obstacles[i].y
+                });
+            }
+            var msg = {
+                "messageType" : "SAVE",
+                "gameState" : {
+                    "time" : time,
+                    "obstacles" : obstacles_data,
+                    "x" : x,
+                    "y" : y
+                }
+            };
+            window.parent.postMessage(msg, "*");
+        }
+        function load_game(data) {
+            game_over(false);
+            window.setTimeout(function() {
+                button.show();
+                warning.show();
+                play_game(data.gameState.x, data.gameState.y, data.gameState.obstacles, data.gameState.time);
+            }, 1000);
+        }
+        
+        function play_game(x_i, y_i, obst_i, time_i) {
+            /*
+            Starts a new game, possibly with initial state (such as when loading a save).
+            
+            Args:
+            x_i:     initial x coordinate 
+            y_i:     initial y coordinate
+            obst_i:  initial list of obstacles (each obstacle has coordinates and speed)
+            
+            In order for the game to work when it is loaded with a different screen size,
+            coordinates are percentages (of total width and height).
+            
+            Returns:
+            handles for the timers (so they can be cleared when game is over)
+             */
+            
+            //update in case screen size has changed
+            offset_h = game_area.offset().left;
+            offset_v = game_area.offset().top;
+            height = game_area.outerHeight();
+            width = game_area.outerWidth();
+            btn_h = button.outerHeight();
+            btn_w = button.outerWidth();
+            
+            if (x_i !== undefined) 
+                x = x_i;
+            else
+                x = 0.5;
+            if (y_i !== undefined) 
+                y = y_i;
+            else 
+                y = 0.5;
+            obstacles = [];
+            if (obst_i !== undefined) {
+                for (var i = 0; i < obst_i.length; i++) {
+                    var o = $('<div class="obstacle"></div>');
+                    obstacles.push({
+                        "o" : o,
+                        "speedX" : obst_i[i].speedX,
+                        "speedY" : obst_i[i].speedY,
+                        "x" : obst_i[i].x,
+                        "y" : obst_i[i].y
+                    });
+                }
+            }
+            if (time_i !== undefined) 
+                time = time_i;
+            else
+                time = 0;
+            
+            set_position(button, x, y);
+            for (var i = 0; i < obstacles.length; i++) {
+                set_position(obstacles[i].o, obstacles[i].x, obstacles[i].y);
+                game_area.append(obstacles[i].o);
+            }
+            
+            //ok, start game:
+            //game consists of periodic events, obstacles appearing and moving
+            //store handles to these intervals so they can be cleared later
+            
+            timer = window.setInterval(function() {
+                //increase counter by one every second
+                if (!pause) {
+                    time++;
+                    $("#time").text(time);
+                }
+            }, 1000);
+            
+            obstacle_spawn = window.setInterval(function() {
+                //every 2 seconds, add new obstacle
+                if (!pause) {
+                    var o = $('<div class="obstacle"></div>');
+                    var speedY = 0.002 * Math.sqrt(time) * (Math.random() * 2 - 1);
+                    var speedX = 0.002 * Math.sqrt(time) * (Math.random() * 2 - 1);
+                    var x_c = Math.random();
+                    var y_c = Math.random();
+                    obstacles.push({'o' : o, 'speedY' : speedY, 'speedX' : speedX, 'x' :  x_c, 'y' :  y_c});
+                    //draw spawn point warning
+                    set_position(warning, x_c, y_c);
+                    window.setTimeout(function() {
+                        //wait 1 sec so player can see spawn point first, then add obstacle
+                        set_position(o, x_c, y_c);
+                        game_area.append(o);
+                    }, 1000);
+                }
+            }, 1000);
+            
+            mainloop = window.setInterval(function() {
+                //mainloop: move obstacles and detect collisions
+                if (!pause) {
+                    var ol = obstacles.length;
+                    for (var i = 0; i < ol; i++) {
+                        var o_i = obstacles[i];
+                        if (collide(o_i.o)) {
+                            game_over();
+                            return;
+                        }
+                        var old_x = o_i.x;
+                        var old_y = o_i.y;
+                        o_i.y += o_i.speedY;
+                        o_i.x += o_i.speedX;
+                        var x_out = x_out_of_bounds(o_i.o);
+                        var y_out = y_out_of_bounds(o_i.o);
+                        if (!x_out && !y_out) {
+                            set_position(o_i.o, o_i.x, o_i.y);
+                        }
+                        else {
+                            if (x_out)
+                                o_i.speedX = -o_i.speedX;
+                            if (y_out)
+                                o_i.speedY = -o_i.speedY;   
+                            o_i.x = old_x += o_i.speedX;
+                            o_i.y = old_y += o_i.speedY;
+                            set_position(o_i.o, o_i.x, o_i.y);
+                        }
+                    }
+                }
+            }, 20);
+            
+        }
+        $(document).ready(function() {  
+            $("#newgame_button").click(function() {
+                new_game();
+            });          
+            $("#load_button").click(function() {
+                load_request();
+            });       
+            $("#pause_button").click(function() {
+                pause_game();
+            });       
+            $(document).keydown(function(event) {
+                if (event.which === 81)
+                    load_request();
+                else if (event.which === 87)
+                    pause_game();
+                else if (event.which === 69)
+                    new_game();
+            });
+            
+            button.click(function() {
+                if (obstacles) 
+                    save_game(); 
+            });
+            
+            window.addEventListener("message", function(event) {
+                if (event.data.messageType === "LOAD") {
+                    load_game(event.data);
+                } 
+                else if (event.data.messageType === "MESSAGE") {
+                    $("#messages").text(event.data.message);
+                }
+            });
+            
+            $(window).resize(function() {
+                /*
+                Make sure that objects stay at the same percentage coordinates in the resized window.
+                */
+                offset_h = game_area.offset().left;
+                offset_v = game_area.offset().top;
+                height = game_area.outerHeight();
+                width = game_area.outerWidth();
+                btn_h = button.outerHeight();
+                btn_w = button.outerWidth();
+                var ol = obstacles.length;
+                for (var i = 0; i < ol; i++) {
+                    set_position(obstacles[i].o, obstacles[i].x, obstacles[i].y);
+                }
+            });
+            
+            game_area.mousemove(function(event) {
+                /*
+                Sets the save button to the current mouse position when mouse is moved.
+                */
+                var x_real = event.pageX - 0.5 * btn_w;
+                var y_real = event.pageY - 0.5 * btn_h;
+                if (x_real > offset_h && x_real + btn_w < width + offset_h && y_real + btn_h < height + offset_v && y_real > offset_v) {
+                    button.offset({'top' : y_real, 'left' : x_real});
+                }   
+            });
+            play_game();
+        });
+        </script>
+    </body>
+</html>
