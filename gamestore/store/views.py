@@ -41,7 +41,7 @@ def denied_view(request):
 
 def login_view(request):
     if request.user.is_authenticated():
-        return render(request, 'store/loggedin.html')
+        return HttpResponseRedirect('/loggedin')
     else:
         c = {}
         c.update(csrf(request))
@@ -53,9 +53,9 @@ def auth_view(request):
     user = auth.authenticate(username=username, password=password)
     if user is not None:
         auth.login(request, user)
-        return render(request, 'store/mygames.html')
+        return HttpResponseRedirect('/mygames')
     else:
-        return render(request, 'store/login.html')
+        return HttpResponseRedirect('/login')
 
 def loggedin(request):
     return render_to_response('store/loggedin.html')
