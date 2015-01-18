@@ -1,3 +1,18 @@
 body {
     padding-top: 60px;
 }
+
+.navbar {
+    background-color: #900;
+}
+
+.navbar-nav a,
+.navbar-header a {
+    color: #FFF;
+}
+
+.nav > li > a:hover,
+.nav > li > a:focus {
+  background-color: #838383;
+  /*background-color: #DDD;*/
+}
