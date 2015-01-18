@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count, Min, Sum, Avg
 from django.forms.models import modelform_factory
+from django.contrib.auth.models import Group
+from store.forms import MyRegistrationForm
 import re
 
 #http://bradmontgomery.blogspot.fi/2009/04/restricting-access-by-group-in-django.html
@@ -53,7 +55,10 @@ def auth_view(request):
     user = auth.authenticate(username=username, password=password)
     if user is not None:
         auth.login(request, user)
-        return HttpResponseRedirect('/mygames')
+        if (user.groups.filter(name='Players').exists()):
+            return HttpResponseRedirect('/mygames')
+        elif (user.groups.filter(name='Developers').exists()):
+            return HttpResponseRedirect('/dev')
     else:
         return HttpResponseRedirect('/login')
 
@@ -65,14 +70,16 @@ def logout_view(request):
     return render_to_response('store/logout.html')
     
 def signup_view(request):
+    if request.user.is_authenticated():
+        return HttpResponseRedirect('/loggedin')
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = MyRegistrationForm(request.POST)
         if form.is_valid():             #TODO: Extend with email validation
-            form.save()   
-            return HttpResponseRedirect('/signup_success')    
+            user = form.save()
+            return HttpResponseRedirect('/signup_success')
     args = {}
     args.update(csrf(request))
-    args['form'] = UserCreationForm()
+    args['form'] = MyRegistrationForm()
     return render_to_response('store/signup.html', args)
 
 def signup_success_view(request):
