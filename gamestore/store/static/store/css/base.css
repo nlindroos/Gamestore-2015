@@ -14,5 +14,9 @@ body {
 .nav > li > a:hover,
 .nav > li > a:focus {
   background-color: #838383;
-  /*background-color: #DDD;*/
+}
+
+/* 'Three stripes' in navbar on mobile device */
+.icon-bar {
+    background-color: #FFF;
 }

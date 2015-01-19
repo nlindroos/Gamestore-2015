@@ -9,11 +9,14 @@ from django.forms.models import modelform_factory
 from django.contrib.auth.models import Group
 from store.forms import MyRegistrationForm
 import re
+from django import template
 
 #http://bradmontgomery.blogspot.fi/2009/04/restricting-access-by-group-in-django.html
 
 from store.models import *
 
+register = template.Library()
+@register.filter(name='is_player')
 def is_player(user):
     if user:
         try:
@@ -32,10 +35,6 @@ def is_developer(user):
         else:
             return True
             
-GameForm = modelform_factory(Game, fields=('title', 'url', 'price', 'description', 'tags'))
-
-
-# Create your views here.
 
 def denied_view(request):
     return render(request, 'store/denied.html')
@@ -87,19 +86,18 @@ def signup_success_view(request):
     
 def all_games_view(request):
     games = Game.objects.all()
+    user = request.user
     if request.user.is_authenticated() and is_player(request.user):
         owned_games = set(x.pk for x in OwnedGame.objects.filter(player=request.user.pk))
-        return render(request, 'store/allgames.html', {'games' : games, 'owned' : owned_games})
-    return render(request, 'store/allgames.html', {'games' : games, 'owned' : set()})
+        return render(request, 'store/allgames.html', {'games' : games, 'owned' : owned_games, 'user' : user})
+    return render(request, 'store/allgames.html', {'games' : games, 'owned' : set(), 'user' : user})
  
 @login_required
 @user_passes_test(is_player, "/denied")
 def my_games_view(request):
-    owned_games = request.user.ownedgame_set.all()
-    game_set = []
-    for game in owned_games:
-        game_set.append(game.game)
-    return render(request, 'store/mygames.html', {'game_set': game_set})
+    user = request.user
+    owned_games = list(x.game for x in request.user.ownedgame_set.all())
+    return render(request, 'store/mygames.html', {'game_set': owned_games, 'user' : user})
 
 @login_required
 @user_passes_test(is_player, "/denied")
@@ -108,6 +106,7 @@ def play_view(request, game):
     Args:
         game: DB primary key of the game
     """
+    user = request.user
     try:
         g = Game.objects.get(pk=game)
     except:
@@ -120,27 +119,30 @@ def play_view(request, game):
         # no such game or player doesn't own the game
         raise Http404("You don't own this game :(") # maybe redirect to allgames?
         
-    return render(request, 'store/playgame.html', {'gamename' : g.title, 'gameurl' : g.url, 'gameid' : game})
+    return render(request, 'store/playgame.html', {'gamename' : g.title, 'gameurl' : g.url, 'gameid' : game, 'user' : user})
         
 @login_required
 @user_passes_test(is_player, "/denied")
 def checkout_view(request):
+    user = request.user
     game = request.POST.get('game', '')
-    return render_to_response('store/checkout.html', {'game' : game})
+    return render_to_response('store/checkout.html', {'game' : game, 'user' : user})
     
 @login_required
 @user_passes_test(is_developer, "/denied")
 def developer_view(request):
+    user = request.user
     games = Game.objects.filter(developer=request.user).annotate(Sum('purchase__fee')).annotate(Count('purchase'))
     # TODO: remove prints!!!!
     print(games.query)
     print(list(games))
     
-    return render(request, 'store/developer.html', {'games' : games, 'devname' : request.user.username})
+    return render(request, 'store/developer.html', {'games' : games, 'devname' : request.user.username, 'user' : user})
 
 @login_required
 @user_passes_test(is_developer, "/denied")
 def dev_game_edit_view(request, game):
+    user = request.user
     try:
         g = Game.objects.get(developer=request.user, pk=game)
     except:
@@ -159,16 +161,19 @@ def dev_game_edit_view(request, game):
             g.tags = re.sub(r',?(\s)+', ',', f.cleaned_data['tags'])
             g.save()
             c['game'] = g
+            c['user'] = user
             return render(request, 'store/editgame.html', c)
         else:
             c['game'] = g
             c['form'] = f
+            c['user'] = user
             return render(request, 'store/editgame.html', c)
-    return render(request, 'store/editgame.html', {'game' : g})
+    return render(request, 'store/editgame.html', {'game' : g, 'user' : user})
     
 @login_required
 @user_passes_test(is_developer, "/denied")
 def dev_new_game_view(request):
+    user = request.user
     if request.method == 'POST':
         c = {}
         c.update(csrf(request))
@@ -182,11 +187,13 @@ def dev_new_game_view(request):
                      tags=re.sub(r',?(\s)+', ',', f.cleaned_data['tags']))
             g.save()
             c['game'] = g
+            c['user'] = user
             return render(request, 'store/editgame.html', c)
         else:
             c['form'] = f
+            c['user'] = user
             return render(request, 'store/newgame.html', c)
-    return render(request, 'store/newgame.html')
+    return render(request, 'store/newgame.html', {'user' : user})
 
 @login_required
 @user_passes_test(is_player, "/denied")   
