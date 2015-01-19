@@ -32,8 +32,13 @@ class MyRegistrationForm(UserCreationForm):
             user.groups.add(Group.objects.get(name=group))
     
         return user
-        
-GameForm = modelform_factory(Game, fields=('title', 'url', 'price', 'description', 'tags'))
+
+GameForm = modelform_factory(Game, fields=('title', 'url', 'price', 'description'))
 """
 Form for editing games and submitting new games.
+
+The tags field/attribute is excluded because we need to pass tags input as an array
+(<input id="tag1" name="tags[]"/> <input id="tag2" name="tags[]"/>), 
+which django doesn't like and fails to validate the form. 
+Therefore, we need to get that input directly from request.POST (see views.py).
 """

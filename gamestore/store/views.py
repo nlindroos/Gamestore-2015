@@ -236,7 +236,8 @@ def dev_game_edit_view(request, game):
             g.url = f.cleaned_data['url']
             g.price = f.cleaned_data['price']
             g.description = f.cleaned_data['description']
-            g.tags = ",".join(f.cleaned_data['tags'])
+            # NOTE: tags is a list input (name="tags[]")
+            g.tags = ",".join(request.POST.getlist('tags[]'))
             g.save()
             c['game'] = g
             return HttpResponseRedirect('/dev')
@@ -251,7 +252,7 @@ def dev_game_edit_view(request, game):
 def dev_new_game_view(request):
     """
     View that lets a developer submit a new game.
-    Very similar to dev_game_edit_view().
+    Very similar to dev_game_edit_view() (and uses the same template).
     
     User must be logged in as a developer.
     """
@@ -259,19 +260,21 @@ def dev_new_game_view(request):
         c = {}
         c.update(csrf(request))
         f = GameForm(request.POST)
-        
-        # use form input to create a Game object:
-        g = Game(developer=request.user, 
-                 title=f.cleaned_data['title'], 
-                 url=f.cleaned_data['url'], 
-                 price=f.cleaned_data['price'],
-                 description=f.cleaned_data['description'],
-                 tags=",".join(f.cleaned_data['tags']))        
+                       
         if f.is_valid():
+            g = Game(developer=request.user, 
+                     title=f.cleaned_data['title'], 
+                     url=f.cleaned_data['url'], 
+                     price=f.cleaned_data['price'],
+                     description=f.cleaned_data['description'],
+                     tags=",".join(request.POST.getlist('tags[]')))
+            # NOTE: tags is a list input (name="tags[]")
             g.save()
             return HttpResponseRedirect('/dev')
         else:
-            c['game'] = g
+            # make a game dict to emulate a Game object and pass it to the template
+            # (to fill form values with previous input)
+            c['game'] = {'title' : f.data['title'], 'url' : f.data['url'], 'price' : f.data['price'], 'description' : f.data['description'], 'get_tags' : request.POST.getlist('tags[]')}
             c['form'] = f
             return render(request, 'store/editgame.html', c)
     return render(request, 'store/editgame.html')

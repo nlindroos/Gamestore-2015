@@ -1,8 +1,15 @@
 {% extends "store/base.html" %}
 
+{% load staticfiles %}
+{% block head %}
+<script src="{% static 'store/js/jquery-1.11.2.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'store/js/editgame.js' %}"></script>
+<link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/editgame.css' %}">
+{% endblock %}
+
 {% block content %}
     <div class="container">
-        {% if game %}
+        {% if game.pk %}
         <h1>Edit game: {{ game.title }}</h1>
         {% else %}
         <h1>Submit new game</h1>
@@ -82,17 +89,17 @@
                 {% if game %}
                 {% for t in game.get_tags %}
                     <div class="input-group">
-                        <input type="text" id="tag{{ forloop.counter }}" name="tag[]" placeholder="{{ t }}" class="form-control" value="{{ t }}"></input>
-                        <span id="delete_tag{{ forloop.counter }}" class="input-group-addon" style="cursor: pointer;">Remove</span>
+                        <input type="text" id="tag{{ forloop.counter }}" name="tags[]" placeholder="{{ t }}" class="form-control" value="{{ t }}"></input>
+                        <span id="delete_tag{{ forloop.counter }}" class="input-group-addon tag_remover">Remove</span>
                     </div>
                 {% endfor %}
                 {% else %}
                     <div class="input-group">
-                        <input type="text" id="tag0" name="tag[]" placeholder="awesome" class="form-control"></input>
-                        <span id="delete_tag0" class="input-group-addon" style="cursor: pointer;">Remove</span>
+                        <input type="text" id="tag0" name="tags[]" placeholder="awesome" class="form-control"></input>
+                        <span id="delete_tag0" class="input-group-addon tag_remover">Remove</span>
                     </div>
                 {% endif %}
-                <button id="addtag">Add tag</button>
+                <button id="addtag" type="button">Add tag</button><!-- type="button" must be used so this doesn't submit the form-->
                 <p></p>
                 <input type="submit" value="Submit game"></input>
             </div>
