@@ -49,7 +49,7 @@
             {% if g.price > 0 %}
             <p>{{ g.price }} €</p>
             <form action="/checkout" method="post">  {% csrf_token %}
-                <input name="game" type="hidden" value={{ g.title }}>
+                <input name="game" type="hidden" value={{ g }}>
                 <button type="submit" formaction="/checkout">Buy now</button>
             </form>
             {% else %}
