@@ -33,7 +33,7 @@ class MyRegistrationForm(UserCreationForm):
     
         return user
 
-GameForm = modelform_factory(Game, fields=('title', 'url', 'price', 'description'))
+GameForm = modelform_factory(Game, fields=('title', 'url', 'price', 'description', 'img_url'))
 """
 Form for editing games and submitting new games.
 

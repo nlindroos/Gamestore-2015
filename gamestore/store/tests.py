@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User, Group
 from store.models import *
 from store.views import *
+from store.forms import *
 
 
 class TestUsers(TestCase):
@@ -45,4 +46,64 @@ class TestUsers(TestCase):
         self.assertEqual(is_developer(p), False, "p is a not a developer")
         self.assertEqual(is_developer(d), True, "d is a developer")
         self.assertEqual(is_developer(None), None, "None is not a player, and not a developer")
+        
+class TestGameForm(TestCase):
+    """
+    Tests GameForm validation.
+    This form is used in /dev edit.  
+    """
+    
+    def test_valid_form(self):
+        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'img_url' : 'http://example.com'}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), True, 'This form should be valid')
+    
+    def test_title(self):
+        post = {'price' : 0, 'url' : "http://example.com", 'description' : 'hello'}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Game must have title')
+        
+        post = {'title' : '', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello'}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Game title cannot be empty')
+        
+    def test_price(self):
+        post = {'title' : 'Cool title bro', 'url' : "http://example.com", 'description' : 'hello'}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Game must have price')
+        
+        post = {'title' : 'Cool title bro', 'price' : -1, 'url' : "http://example.com", 'description' : 'hello'}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Game price must be non-negative')
+        
+    def test_url(self):
+        post = {'title' : 'Cool title bro', 'price' : 0, 'description' : 'hello'}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Game must have url')
+        
+        post = {'title' : 'Cool title bro', 'url' : 'invalid_url', 'price' : 0, 'description' : 'hello'}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Game url must be valid')
+        
+    def test_description(self):
+        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com"}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Game description is required')
+        
+        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : ''}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Game description may not be empty')
+        
+    def test_img_url(self):
+        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello'}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), True, 'Image url is not required')
+        
+        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'img_url' : 'invalid_url'}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Image url must be valid')
+        
+        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'img_url' : None}
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), True, 'Image url may be None')
         

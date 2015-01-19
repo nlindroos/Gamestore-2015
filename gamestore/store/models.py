@@ -28,11 +28,12 @@ class Game(models.Model):
     def __str__(self):
         return self.title
     developer = models.ForeignKey(User, limit_choices_to={'groups__name': "Developers"})
-    title = models.CharField(max_length=60, blank=False)	# Added title, not defined in the project plan
-    url = models.URLField(blank=False)
+    title = models.CharField(max_length=60, blank=False)
+    url = models.URLField(blank=False, null=False, default="http://example.com")
     price = models.DecimalField(max_digits=5, decimal_places=2, null=False, default=0.00, validators=[validate_price])
-    tags = models.TextField()
-    description = models.TextField(default='')
+    tags = models.TextField(null=False, default='', blank=True)
+    description = models.TextField(null=False, default='', blank=False)
+    img_url = models.URLField(null=True, blank=True, default=None)
     
     def get_tags(self):
         return self.tags.split(',')

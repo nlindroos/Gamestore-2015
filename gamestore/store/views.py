@@ -267,6 +267,7 @@ def dev_new_game_view(request):
                      url=f.cleaned_data['url'], 
                      price=f.cleaned_data['price'],
                      description=f.cleaned_data['description'],
+                     img_url=f.cleaned_data.get('img_url', None),
                      tags=",".join(request.POST.getlist('tags[]')))
             # NOTE: tags is a list input (name="tags[]")
             g.save()
@@ -274,7 +275,7 @@ def dev_new_game_view(request):
         else:
             # make a game dict to emulate a Game object and pass it to the template
             # (to fill form values with previous input)
-            c['game'] = {'title' : f.data['title'], 'url' : f.data['url'], 'price' : f.data['price'], 'description' : f.data['description'], 'get_tags' : request.POST.getlist('tags[]')}
+            c['game'] = {'title' : f.data['title'], 'url' : f.data['url'], 'img_url' : f.data.get('img_url', None) , 'price' : f.data['price'], 'description' : f.data['description'], 'get_tags' : request.POST.getlist('tags[]')}
             c['form'] = f
             return render(request, 'store/editgame.html', c)
     return render(request, 'store/editgame.html')
