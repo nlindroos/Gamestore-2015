@@ -213,12 +213,10 @@ def dev_game_edit_view(request, game):
             g.url = f.cleaned_data['url']
             g.price = f.cleaned_data['price']
             g.description = f.cleaned_data['description']
-            # TODO: don't do this... use an inout to add new tags instead
-            # use regex to remove extra spaces and add omited commas
-            g.tags = re.sub(r',?(\s)+', ',', f.cleaned_data['tags'])
+            g.tags = ",".join(f.cleaned_data['tags'])
             g.save()
             c['game'] = g
-            return render(request, 'store/editgame.html', c)
+            return HttpResponseRedirect('/dev')
         else:
             c['game'] = g
             c['form'] = f
@@ -238,20 +236,22 @@ def dev_new_game_view(request):
         c = {}
         c.update(csrf(request))
         f = GameForm(request.POST)
+        
+        # use form input to create a Game object:
+        g = Game(developer=request.user, 
+                 title=f.cleaned_data['title'], 
+                 url=f.cleaned_data['url'], 
+                 price=f.cleaned_data['price'],
+                 description=f.cleaned_data['description'],
+                 tags=",".join(f.cleaned_data['tags']))        
         if f.is_valid():
-            g = Game(developer=request.user, 
-                     title=f.cleaned_data['title'], 
-                     url=f.cleaned_data['url'], 
-                     price=f.cleaned_data['price'],
-                     description=f.cleaned_data['description'],
-                     tags=re.sub(r',?(\s)+', ',', f.cleaned_data['tags']))
             g.save()
-            c['game'] = g
-            return render(request, 'store/editgame.html', c)
+            return HttpResponseRedirect('/dev')
         else:
+            c['game'] = g
             c['form'] = f
-            return render(request, 'store/newgame.html', c)
-    return render(request, 'store/newgame.html')
+            return render(request, 'store/editgame.html', c)
+    return render(request, 'store/editgame.html')
 
 @login_required
 @user_passes_test(is_player, "/denied")   

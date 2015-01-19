@@ -2,7 +2,11 @@
 
 {% block content %}
     <div class="container">
+        {% if game %}
         <h1>Edit game: {{ game.title }}</h1>
+        {% else %}
+        <h1>Submit new game</h1>
+        {% endif %}
         {% if form.errors %}
             {% for error in form.non_field_errors %}
                 <div class="alert alert-danger">
@@ -20,7 +24,11 @@
                         </div>
                     {% endfor %}
                 {% endif %}
+                {% if game %}
                 <input id="title" name="title" type="text" value="{{ game.title }}" placeholder="{{ game.title }}" class="form-control"></input>
+                {% else %}
+                <input id="title" name="title" type="text" placeholder="My Awesome Game" class="form-control"></input>
+                {% endif %}
                 <label for="url">URL:</label>
                 {% if form.url.errors %}
                     {% for error in form.url.errors %}
@@ -29,7 +37,11 @@
                         </div>
                     {% endfor %}
                 {% endif %}
+                {% if game %}
                 <input id="url" name="url" type="url" value="{{ game.url }}" placeholder="{{ game.url }}" class="form-control"></input>
+                {% else %}
+                <input id="url" name="url" type="url" placeholder="http://example.com/game.html" class="form-control"></input>
+                {% endif %}
                 <label for="price">Price:</label>
                 {% if form.price.errors %}
                     {% for error in form.price.errors %}
@@ -40,7 +52,11 @@
                 {% endif %}
                 <div class="input-group">
                     <span class="input-group-addon">€</span>
+                    {% if game %}
                     <input id="price" name="price" type="number" value="{{ game.price }}" placeholder="{{ game.price }}" class="form-control"></input>
+                    {% else %}
+                    <input id="price" name="price" type="number" placeholder="0" class="form-control"></input>
+                    {% endif %}
                 </div>
                 <label for="description">Description:</label>
                 {% if form.description.errors %}
@@ -50,8 +66,12 @@
                         </div>
                     {% endfor %}
                 {% endif %}
+                {% if game %}
                 <textarea id="description" name="description" placeholder="{{ game.description }}" class="form-control">{{ game.description }}</textarea>
-                <label for="tags">Tags:</label>
+                {% else %}
+                <textarea id="description" name="description" placeholder="Most. Awesome. Game. Ever." class="form-control"></textarea>
+                {% endif %}
+                <label for="tag0">Tags:</label>
                 {% if form.tags.errors %}
                     {% for error in form.tags.errors %}
                         <div class="alert alert-danger">
@@ -59,8 +79,22 @@
                         </div>
                     {% endfor %}
                 {% endif %}
-                <textarea id="tags" name="tags" placeholder="{{ game.get_tags_formatted }}" class="form-control">{{ game.get_tags_formatted }}</textarea>
-                <input type="submit" value="Save changes"></input>
+                {% if game %}
+                {% for t in game.get_tags %}
+                    <div class="input-group">
+                        <input type="text" id="tag{{ forloop.counter }}" name="tag[]" placeholder="{{ t }}" class="form-control" value="{{ t }}"></input>
+                        <span id="delete_tag{{ forloop.counter }}" class="input-group-addon" style="cursor: pointer;">Remove</span>
+                    </div>
+                {% endfor %}
+                {% else %}
+                    <div class="input-group">
+                        <input type="text" id="tag0" name="tag[]" placeholder="awesome" class="form-control"></input>
+                        <span id="delete_tag0" class="input-group-addon" style="cursor: pointer;">Remove</span>
+                    </div>
+                {% endif %}
+                <button id="addtag">Add tag</button>
+                <p></p>
+                <input type="submit" value="Submit game"></input>
             </div>
         </form>
     </div>
