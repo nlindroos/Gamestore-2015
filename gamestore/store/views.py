@@ -73,6 +73,11 @@ def login_view(request):
 def auth_view(request):
     """
     View that authenticates users (after a login) and redirects to the appropriate place.
+    
+    Redirects to:
+        /mygames for players
+        /dev for developers
+        /login for others (meaning that only players and devs can login)
     """
     username = request.POST.get('username', '')
     password = request.POST.get('password', '')
@@ -83,8 +88,7 @@ def auth_view(request):
             return HttpResponseRedirect('/mygames')
         elif is_developer(user):
             return HttpResponseRedirect('/dev')
-    else:
-        return HttpResponseRedirect('/login')
+    return HttpResponseRedirect('/login')
 
 def loggedin(request):
     return render_to_response('store/loggedin.html')

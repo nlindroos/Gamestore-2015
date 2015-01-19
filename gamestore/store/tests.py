@@ -1,9 +1,18 @@
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
+from django.test.client import Client
 from django.contrib.auth.models import User, Group
 from store.models import *
 from store.views import *
 from store.forms import *
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 
+
+
+class DummyObject(object):
+    """
+    Instant object, just add attributes!
+    """
+    pass
 
 class TestUsers(TestCase):
     fixtures = ['groups.json', 'users.json']
@@ -106,4 +115,31 @@ class TestGameForm(TestCase):
         post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'img_url' : None}
         f = GameForm(post)
         self.assertEqual(f.is_valid(), True, 'Image url may be None')
+        
+class TestAuthView(TestCase):
+    fixtures = ['groups.json', 'users.json']
+        
+    def setUp(self):
+        # Every test needs a client.
+        self.client = Client()    
+        
+    def test_player_ok(self):
+        response = self.client.post('/auth', {'username' : 'player', 'password' : 'player'})
+        self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
+        self.assertEqual(response.url, 'http://testserver/mygames', "Response url should be mygames")
+        
+    def test_developer_ok(self):
+        response = self.client.post('/auth', {'username' : 'dev', 'password' : 'dev'})
+        self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
+        self.assertEqual(response.url, 'http://testserver/dev', "Response url should be dev")
+        
+    def test_no_group_user(self):
+        response = self.client.post('/auth', {'username' : 'tester', 'password' : 'tester'})
+        self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
+        self.assertEqual(response.url, 'http://testserver/login', "Response url should be login")
+        
+    def test_invalid_password(self):
+        response = self.client.post('/auth', {'username' : 'dev', 'password' : 'oops'})
+        self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
+        self.assertEqual(response.url, 'http://testserver/login', "Response url should be login")
         
