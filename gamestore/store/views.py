@@ -125,7 +125,8 @@ def play_view(request, game):
 @login_required
 @user_passes_test(is_player, "/denied")
 def checkout_view(request):
-    return HttpResponse('Welcome to checkout. Not implemented')    
+    gamename = request.POST.get('game', '')
+    return render_to_response('store/checkout.html', {'gamename' : gamename})
     
 @login_required
 @user_passes_test(is_developer, "/denied")

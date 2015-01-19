@@ -48,7 +48,10 @@
         {% if g.pk not in owned %}
             {% if g.price > 0 %}
             <p>{{ g.price }} €</p>
-            <button>Buy now</button>
+            <form action="/checkout" method="post">  {% csrf_token %}
+                <input name="game" type="hidden" value={{ g.title }}>
+                <button type="submit" formaction="/checkout">Buy now</button>
+            </form>
             {% else %}
             <p>FREE!</p>
             <button>Add to my games</button>
