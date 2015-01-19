@@ -8,11 +8,12 @@ from django.db.models import Count, Min, Sum, Avg
 from django.forms.models import modelform_factory
 from django.contrib.auth.models import Group
 from store.forms import MyRegistrationForm
+from store.models import *
+from hashlib import md5
 import re
 
 #http://bradmontgomery.blogspot.fi/2009/04/restricting-access-by-group-in-django.html
 
-from store.models import *
 
 def is_player(user):
     if user:
@@ -55,9 +56,9 @@ def auth_view(request):
     user = auth.authenticate(username=username, password=password)
     if user is not None:
         auth.login(request, user)
-        if (user.groups.filter(name='Players').exists()):
+        if is_player(user):
             return HttpResponseRedirect('/mygames')
-        elif (user.groups.filter(name='Developers').exists()):
+        elif is_developer(user):
             return HttpResponseRedirect('/dev')
     else:
         return HttpResponseRedirect('/login')
@@ -125,8 +126,32 @@ def play_view(request, game):
 @login_required
 @user_passes_test(is_player, "/denied")
 def checkout_view(request):
-    game = request.POST.get('game', '')
-    return render_to_response('store/checkout.html', {'game' : game})
+    if request.method == 'GET':
+        return HttpResponseRedirect('/denied')
+    dictator = {}
+    game_id = request.POST.get('game_id', '')
+    game = Game.objects.get(pk=game_id)
+    sid = "wFEit8qsZlbJ"
+    secret_key = "cd1da6350bd3226d26927415319d17e1"
+    purchase = Purchase(player=request.user, game=game, fee=game.price)
+    pid = purchase.pk
+    amount = purchase.fee
+    dictator['game_title'] = game.title
+    dictator['pid'] = pid
+    dictator['sid'] = sid
+    dictator['price'] = amount
+    dictator['success_url'] = 'http://localhost:8000/mygames'
+    dictator['cancel_url'] = 'http://localhost:8000/denied'
+    dictator['error_url'] = 'http://localhost:8000/denied'
+    checksumstr = "pid=%s&sid=%s&amount=%s&token=%s"%(pid, sid, amount, secret_key)
+    m = md5(checksumstr.encode("ascii"))
+    checksum = m.hexdigest()
+    dictator['checksum'] = checksum
+    #Dummy implementation
+    purchase.save()
+    owned = OwnedGame(player=request.user, game=game, game_state="")
+    owned.save()
+    return render_to_response('store/checkout.html', dictator)
     
 @login_required
 @user_passes_test(is_developer, "/denied")
