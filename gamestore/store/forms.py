@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from django.contrib.auth.forms import UserCreationForm
+from django.forms.models import modelform_factory
+from store.models import Game
 
 class MyRegistrationForm(UserCreationForm):
     GROUP_CHOICES = (
@@ -30,3 +32,8 @@ class MyRegistrationForm(UserCreationForm):
             user.groups.add(Group.objects.get(name=group))
     
         return user
+        
+GameForm = modelform_factory(Game, fields=('title', 'url', 'price', 'description', 'tags'))
+"""
+Form for editing games and submitting new games.
+"""
