@@ -5,19 +5,24 @@ from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count, Min, Sum, Avg
-from django.forms.models import modelform_factory
 from django.contrib.auth.models import Group
-from store.forms import MyRegistrationForm
-import re
-from django import template
 
-#http://bradmontgomery.blogspot.fi/2009/04/restricting-access-by-group-in-django.html
-
+from store.forms import MyRegistrationForm, GameForm
 from store.models import *
+from hashlib import md5
+import re
 
-register = template.Library()
-@register.filter(name='is_player')
 def is_player(user):
+    """
+    Utility function.
+    
+    Args:
+        user: a django.contrib.auth.models.User object
+    
+    Returns true if a user is a player.
+    If the user is not a player, returns False.
+    If the user is None, returns None.
+    """
     if user:
         try:
             user.groups.get(name='Players')
@@ -27,6 +32,16 @@ def is_player(user):
             return True
     
 def is_developer(user):
+    """
+    Utility function.
+    
+    Args:
+        user: a django.contrib.auth.models.User object
+    
+    Returns true if a user is a developer.
+    If the user is not a developer, returns False.
+    If the user is None, returns None.
+    """
     if user:
         try:
             user.groups.get(name='Developers')
@@ -34,13 +49,20 @@ def is_developer(user):
             return False
         else:
             return True
-            
+
 
 def denied_view(request):
+    """
+    Shown whenever access is not allowed.
+    """
     return render(request, 'store/denied.html')
     
 
 def login_view(request):
+    """
+    View for logging in. 
+    Redirect to /auth is done by form action attribute (see logn.html).
+    """
     if request.user.is_authenticated():
         return HttpResponseRedirect('/loggedin')
     else:
@@ -49,14 +71,17 @@ def login_view(request):
         return render_to_response('store/login.html', c)
     
 def auth_view(request):
+    """
+    View that authenticates users (after a login) and redirects to the appropriate place.
+    """
     username = request.POST.get('username', '')
     password = request.POST.get('password', '')
     user = auth.authenticate(username=username, password=password)
     if user is not None:
         auth.login(request, user)
-        if (user.groups.filter(name='Players').exists()):
+        if is_player(user):
             return HttpResponseRedirect('/mygames')
-        elif (user.groups.filter(name='Developers').exists()):
+        elif is_developer(user):
             return HttpResponseRedirect('/dev')
     else:
         return HttpResponseRedirect('/login')
@@ -69,6 +94,9 @@ def logout_view(request):
     return render_to_response('store/logout.html')
     
 def signup_view(request):
+    """
+    View that allows creating a new user.
+    """
     if request.user.is_authenticated():
         return HttpResponseRedirect('/loggedin')
     if request.method == 'POST':
@@ -85,28 +113,40 @@ def signup_success_view(request):
     return render_to_response('store/signup_success.html')
     
 def all_games_view(request):
+    """
+    View that lists all available games.
+    
+    Owned games are marked as owned so they cannot be repurchased.
+    """
     games = Game.objects.all()
-    user = request.user
     if request.user.is_authenticated() and is_player(request.user):
+        # players may own games: don't let them buy the same game twice:
         owned_games = set(x.pk for x in OwnedGame.objects.filter(player=request.user.pk))
-        return render(request, 'store/allgames.html', {'games' : games, 'owned' : owned_games, 'user' : user})
-    return render(request, 'store/allgames.html', {'games' : games, 'owned' : set(), 'user' : user})
+        return render(request, 'store/allgames.html', {'games' : games, 'owned' : owned_games})
+    # default behaviour for devs and unregistered users:
+    return render(request, 'store/allgames.html', {'games' : games, 'owned' : set()})
  
 @login_required
 @user_passes_test(is_player, "/denied")
 def my_games_view(request):
-    user = request.user
+    """
+    View that lists all games owned by a player.
+    User must be a player and logged in.
+    """
     owned_games = list(x.game for x in request.user.ownedgame_set.all())
-    return render(request, 'store/mygames.html', {'game_set': owned_games, 'user' : user})
+    return render(request, 'store/mygames.html', {'game_set': owned_games})
+
 
 @login_required
 @user_passes_test(is_player, "/denied")
 def play_view(request, game):
     """
+    View that allows a player to play a game he/she owns.
+    User must be a player, must be logged in and must own the game being played.
+    
     Args:
-        game: DB primary key of the game
+        game: primary key of the Game object
     """
-    user = request.user
     try:
         g = Game.objects.get(pk=game)
     except:
@@ -119,30 +159,69 @@ def play_view(request, game):
         # no such game or player doesn't own the game
         raise Http404("You don't own this game :(") # maybe redirect to allgames?
         
-    return render(request, 'store/playgame.html', {'gamename' : g.title, 'gameurl' : g.url, 'gameid' : game, 'user' : user})
+    return render(request, 'store/playgame.html', {'gamename' : g.title, 'gameurl' : g.url, 'gameid' : game})
         
 @login_required
 @user_passes_test(is_player, "/denied")
 def checkout_view(request):
-    user = request.user
-    game = request.POST.get('game', '')
-    return render_to_response('store/checkout.html', {'game' : game, 'user' : user})
+    """
+    View for buying games using the niksula payment service.
+    
+    User must be logged in as a player who does not own the game being purchased.
+    """
+    if request.method == 'GET':
+        return HttpResponseRedirect('/denied')
+    dictator = {}
+    game_id = request.POST.get('game_id', '')
+    game = Game.objects.get(pk=game_id)
+    sid = "wFEit8qsZlbJ"
+    secret_key = "cd1da6350bd3226d26927415319d17e1"
+    purchase = Purchase(player=request.user, game=game, fee=game.price)
+    pid = purchase.pk
+    amount = purchase.fee
+    dictator['game_title'] = game.title
+    dictator['pid'] = pid
+    dictator['sid'] = sid
+    dictator['price'] = amount
+    dictator['success_url'] = 'http://localhost:8000/mygames'
+    dictator['cancel_url'] = 'http://localhost:8000/denied'
+    dictator['error_url'] = 'http://localhost:8000/denied'
+    checksumstr = "pid=%s&sid=%s&amount=%s&token=%s"%(pid, sid, amount, secret_key)
+    m = md5(checksumstr.encode("ascii"))
+    checksum = m.hexdigest()
+    dictator['checksum'] = checksum
+    #Dummy implementation
+    purchase.save()
+    owned = OwnedGame(player=request.user, game=game, game_state="")
+    owned.save()
+    return render_to_response('store/checkout.html', dictator)
     
 @login_required
 @user_passes_test(is_developer, "/denied")
 def developer_view(request):
-    user = request.user
+    """
+    View that lists all games submitted by a developer and shows some relevant stats.
+    
+    User must be logged in as a developer.
+    """
     games = Game.objects.filter(developer=request.user).annotate(Sum('purchase__fee')).annotate(Count('purchase'))
     # TODO: remove prints!!!!
     print(games.query)
     print(list(games))
     
-    return render(request, 'store/developer.html', {'games' : games, 'devname' : request.user.username, 'user' : user})
+    return render(request, 'store/developer.html', {'games' : games, 'devname' : request.user.username})
 
 @login_required
 @user_passes_test(is_developer, "/denied")
 def dev_game_edit_view(request, game):
-    user = request.user
+    """
+    View that lets a developer edit one of his/her previously submitted games.
+    
+    User must be logged in as the developer who originally submitted the game.
+    
+    Args:
+        game: primary key of the Game object
+    """
     try:
         g = Game.objects.get(developer=request.user, pk=game)
     except:
@@ -157,23 +236,27 @@ def dev_game_edit_view(request, game):
             g.url = f.cleaned_data['url']
             g.price = f.cleaned_data['price']
             g.description = f.cleaned_data['description']
+            # TODO: don't do this... use an inout to add new tags instead
             # use regex to remove extra spaces and add omited commas
             g.tags = re.sub(r',?(\s)+', ',', f.cleaned_data['tags'])
             g.save()
             c['game'] = g
-            c['user'] = user
             return render(request, 'store/editgame.html', c)
         else:
             c['game'] = g
             c['form'] = f
-            c['user'] = user
             return render(request, 'store/editgame.html', c)
-    return render(request, 'store/editgame.html', {'game' : g, 'user' : user})
+    return render(request, 'store/editgame.html', {'game' : g})
     
 @login_required
 @user_passes_test(is_developer, "/denied")
 def dev_new_game_view(request):
-    user = request.user
+    """
+    View that lets a developer submit a new game.
+    Very similar to dev_game_edit_view().
+    
+    User must be logged in as a developer.
+    """
     if request.method == 'POST':
         c = {}
         c.update(csrf(request))
@@ -187,17 +270,25 @@ def dev_new_game_view(request):
                      tags=re.sub(r',?(\s)+', ',', f.cleaned_data['tags']))
             g.save()
             c['game'] = g
-            c['user'] = user
             return render(request, 'store/editgame.html', c)
         else:
             c['form'] = f
-            c['user'] = user
             return render(request, 'store/newgame.html', c)
-    return render(request, 'store/newgame.html', {'user' : user})
+    return render(request, 'store/newgame.html')
 
 @login_required
 @user_passes_test(is_player, "/denied")   
 def gamestate_ajax_view(request, game):
+    """
+    View for AJAX requests for saving/loading a game.
+    
+    For GET requests, returns the current gamestate (JSON string).
+    For POST requests, stores a new game_state (overwrites the current one).
+    User must be logged in as a player and must own the game.
+    
+    Args:
+        game: primary key of the Game object
+    """
     
     # make sure that only owned games are playable:
     g = None
@@ -227,6 +318,15 @@ def gamestate_ajax_view(request, game):
 @login_required     
 @user_passes_test(is_player, "/denied")       
 def gamescore_ajax_view(request, game):
+    """
+    View for AJAX requests for sending highscores to the server.
+    
+    For POST requests, stores a new highscore.
+    User must be logged in as a player and must own the game.
+    
+    Args:
+        game: primary key of the Game object
+    """
     
     # make sure that only owned games can be saved to:
     g = None

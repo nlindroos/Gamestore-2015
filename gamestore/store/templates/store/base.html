@@ -22,18 +22,18 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav navbar-right">
-                    {% if user.is_authenticated %}
-                    {% if "Players" == user.groups.all.0.name  %}
+                    {% if request.user.is_authenticated %}
+                    {% if "Players" == request.user.groups.all.0.name  %}
                     <li><a href="/mygames">My games</a></li>
                     {% else %}
                     <li><a href="/dev">My games</a></li>
                     {% endif %}
                     <li role="presentation" class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
-                        Hello, {% if user.first_name %}
-                        {{ user.first_name }}
+                        Hello, {% if request.user.first_name %}
+                        {{ request.user.first_name }}
                         {% else %}
-                        {{ user.username }}
+                        {{ request.user.username }}
                         {% endif %}
                         <span class="caret"></span>
                         </a>
