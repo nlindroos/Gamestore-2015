@@ -127,19 +127,121 @@ class TestAuthView(TestCase):
         response = self.client.post('/auth', {'username' : 'player', 'password' : 'player'})
         self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
         self.assertEqual(response.url, 'http://testserver/mygames', "Response url should be mygames")
+        self.assertEqual(self.client.session['_auth_user_id'], 3, "player (pk=3) should be logged in")
         
     def test_developer_ok(self):
         response = self.client.post('/auth', {'username' : 'dev', 'password' : 'dev'})
         self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
         self.assertEqual(response.url, 'http://testserver/dev', "Response url should be dev")
+        self.assertEqual(self.client.session['_auth_user_id'], 4, "dev (pk=4) should be logged in")
         
     def test_no_group_user(self):
+        # testing a user with no groups (NOTE: this kind of user cannot be reated in the service)
         response = self.client.post('/auth', {'username' : 'tester', 'password' : 'tester'})
         self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
         self.assertEqual(response.url, 'http://testserver/login', "Response url should be login")
         
+        # the assert below will fail because our site allows ungrouped users to log in:
+        #self.assertEqual(self.client.session.get('_auth_user_id', None), None, "Nobody should be logged in")
+        
     def test_invalid_password(self):
+        # testing a non-existent user
         response = self.client.post('/auth', {'username' : 'dev', 'password' : 'oops'})
         self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
         self.assertEqual(response.url, 'http://testserver/login', "Response url should be login")
+        self.assertEqual(self.client.session.get('_auth_user_id', None), None, "Nobody should be logged in")
+        
+        
+class TestLoginView(TestCase):
+    fixtures = ['groups.json', 'users.json']
+    
+    def setUp(self):
+        # Every test needs a client.
+        self.client = Client()  
+        
+    def test_auth_user(self):
+        self.assertEqual(True, self.client.login(username="dev", password="dev"))
+        response = self.client.get('/login')
+        self.assertEqual(response.status_code, 302, "Should redirect")        
+        
+    def test_not_auth_user(self):
+        response = self.client.get('/login')
+        self.assertEqual(response.status_code, 200, "Should render login page")
+        
+class TestLogoutView(TestCase):
+    fixtures = ['groups.json', 'users.json']
+    
+    def setUp(self):
+        # Every test needs a client.
+        self.client = Client()
+        
+    def test_logged_in_user(self):
+        self.assertEqual(True, self.client.login(username="dev", password="dev"))
+        self.assertEqual(self.client.session['_auth_user_id'], 4, "dev (pk=4) should be logged in")
+        response = self.client.get('/logout')
+        self.assertEqual(response.status_code, 200, "Should render logout page")
+        self.assertEqual(self.client.session.get('_auth_user_id', None), None, "Nobody should be logged in")
+        
+class TestSignupView(TestCase):
+    fixtures = ['groups.json', 'users.json']
+    
+    def setUp(self):
+        # Every test needs a client.
+        self.client = Client()
+        self.new_user_data = {'email' : 'test@example.com', 
+                              'username' : 'thebuilder', 
+                              'first_name' : 'Bob', 
+                              'last_name' : 'Builder',
+                              'password1' : 'secret',
+                              'password2' : 'secret',
+                              'group' : 'Developers'
+                          }
+                          
+    def test_GET(self):
+        response = self.client.get('/signup')
+        self.assertEqual(response.status_code, 200)
+                          
+    def test_create_user_ok(self):
+        response = self.client.post('/signup', self.new_user_data)
+        self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
+        self.assertEqual(response.url, 'http://testserver/signup_success', "Response url should be signup_success")
+        user = User.objects.get(username="thebuilder")
+        user_groups = [x.name for x in user.groups.all()]
+        self.assertEqual(user_groups, ['Developers'])
+        
+    def test_create_user_invalid_1(self):
+        # testing if second password doesn't match
+        self.new_user_data['password2'] = 'not_the_same'
+        response = self.client.post('/signup', self.new_user_data)
+        self.assertEqual(response.status_code, 200, "Should reload page")
+        self.assertRaises(User.DoesNotExist, User.objects.get, username='thebuilder')
+        
+    def test_create_user_invalid_2(self):
+        # testing if form information is missing
+        self.new_user_data.pop('email')
+        response = self.client.post('/signup', self.new_user_data)
+        self.assertEqual(response.status_code, 200, "Should reload page")
+        self.assertRaises(User.DoesNotExist, User.objects.get, username='thebuilder')
+        
+    def test_create_user_existing(self):
+        self.new_user_data['username'] = 'player' # this guy already exists
+        response = self.client.post('/signup', self.new_user_data)
+        self.assertEqual(response.status_code, 200, "Should reload page")
+        self.assertEqual(User.objects.filter(username="player").count(), 1, "No new user should be created") 
+        self.assertNotEqual(User.objects.get(username='player').last_name, 'Bob', 'Existing user should not be modified')
+    
+    def test_already_logged_in_GET(self):
+        self.assertEqual(True, self.client.login(username="dev", password="dev"))
+        response = self.client.get('/signup')
+        self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
+        self.assertEqual(response.url, 'http://testserver/loggedin', "Response url should be loggedin")
+        
+    def test_already_logged_in_POST(self):
+        # test to make sure that logged in users can't create new user with POST
+        self.assertEqual(True, self.client.login(username="dev", password="dev"))
+        response = self.client.post('/signup', self.new_user_data)
+        self.assertRaises(User.DoesNotExist, User.objects.get, username='thebuilder')
+        self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
+        self.assertEqual(response.url, 'http://testserver/loggedin', "Response url should be loggedin")
+        
         
