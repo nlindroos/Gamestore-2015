@@ -36,7 +36,7 @@ class Game(models.Model):
     img_url = models.URLField(null=True, blank=True, default=None)
     
     def get_tags(self):
-        return self.tags.split(',')
+        return [x.strip() for x in self.tags.split(',')] # FIXME: maybe could be better to strip these when saved?
         
     def get_tags_formatted(self):
         """
@@ -51,6 +51,9 @@ class Highscore(models.Model):
     player = models.ForeignKey(User, limit_choices_to={'groups__name': "Players"})
     score = models.DecimalField(max_digits=11, decimal_places=2)
     date_time = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['game', '-score', 'date_time', 'player']
 
 class OwnedGame(models.Model):
     def __str__(self):
