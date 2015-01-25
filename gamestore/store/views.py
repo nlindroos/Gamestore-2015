@@ -135,13 +135,7 @@ def all_games_view(request):
     games = Game.objects.all()
     if request.user.is_authenticated() and is_player(request.user):
         # players may own games: don't let them buy the same game twice:
-        owned_games = set(x.pk for x in OwnedGame.objects.filter(player=request.user.pk))
-        print ("All games:")
-        for i in games:
-            print (i.title, i.pk)
-        print ("My games:")
-        print (owned_games)
-        
+        owned_games = list(x.game for x in request.user.ownedgame_set.all())       
         return render(request, 'store/allgames.html', {'games' : games, 'owned' : owned_games})
     # default behaviour for devs and unregistered users:
     return render(request, 'store/allgames.html', {'games' : games, 'owned' : set()})
