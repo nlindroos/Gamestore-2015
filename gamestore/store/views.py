@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count, Min, Sum, Avg
 from django.contrib.auth.models import Group
+from django.core.mail import send_mail
 
 from store.forms import MyRegistrationForm, GameForm
 from store.models import *
@@ -105,17 +106,26 @@ def signup_view(request):
         return HttpResponseRedirect('/loggedin')
     if request.method == 'POST':
         form = MyRegistrationForm(request.POST)
-        if form.is_valid():             #TODO: Extend with email validation
+        if form.is_valid():
             user = form.save()
-            return HttpResponseRedirect('/signup_success')
+            user.is_active = False  # Disables user account until it is validated by e-mail
+            send_mail('Confirm registration', 'Go to this URL to confirm your account: http://localhost:8000/signup_success/'+str(user.pk), 'admin@gamestore.com',
+    [user.email], fail_silently=False)
+            return HttpResponse("Confirm your registration via e-mail")
+
     args = {}
     args.update(csrf(request))
     args['form'] = MyRegistrationForm()
     return render_to_response('store/signup.html', args)
 
-def signup_success_view(request):
-    return render_to_response('store/signup_success.html')
-    
+def signup_success_view(request, user_pk):
+    try:
+        user = User.objects.get(pk=user_pk)
+        user.is_active = True
+        return render_to_response('store/signup_success.html')
+    except ObjectDoesNotExist:
+        return HttpResponse("Registration failed :(")
+        
 def all_games_view(request):
     """
     View that lists all available games.
@@ -126,6 +136,12 @@ def all_games_view(request):
     if request.user.is_authenticated() and is_player(request.user):
         # players may own games: don't let them buy the same game twice:
         owned_games = set(x.pk for x in OwnedGame.objects.filter(player=request.user.pk))
+        print ("All games:")
+        for i in games:
+            print (i.title, i.pk)
+        print ("My games:")
+        print (owned_games)
+        
         return render(request, 'store/allgames.html', {'games' : games, 'owned' : owned_games})
     # default behaviour for devs and unregistered users:
     return render(request, 'store/allgames.html', {'games' : games, 'owned' : set()})

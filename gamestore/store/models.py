@@ -5,20 +5,6 @@ from django.core.exceptions import ValidationError
 # NOTE: Django sets variables names from e.g. player to player_id in the db when ForeignKey is used, but we only need to use player to refer to this field.
 
 # Should we combine Highscore OwnedGame and Purchase, since each of these only add one column?
-'''
-class Player(models.Model):
-    def __str__(self):
-        return self.name
-    name = models.CharField(max_length=40)
-    email = models.EmailField(max_length=254)
-
-
-class Developer(models.Model):
-    def __str__(self):
-        return self.name
-    name = models.CharField(max_length=40)
-    email = models.EmailField(max_length=254)
-'''
 
 def validate_price(price):
     if price < 0:
