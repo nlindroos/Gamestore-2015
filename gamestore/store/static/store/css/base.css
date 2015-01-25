@@ -13,10 +13,15 @@ body {
 
 .nav > li > a:hover,
 .nav > li > a:focus {
-  background-color: #838383;
+  background-color: #808080;
 }
 
 /* 'Three stripes' in navbar on mobile device */
 .icon-bar {
     background-color: #FFF;
+}
+
+/* Opening the dropdown menu in the navbar; focusing elsewhere when opened */
+.nav .open > a, .nav .open > a:hover, .nav .open > a:focus {
+    background-color: #333;
 }
