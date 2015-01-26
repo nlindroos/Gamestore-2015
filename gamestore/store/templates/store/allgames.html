@@ -3,71 +3,75 @@
 {% load staticfiles %}
 
 {% block head %}
-<script src="{% static 'store/js/jquery-1.11.2.min.js' %}"></script>
-<script src="{% static 'store/js/allgames_filter.js' %}"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/allgames.css' %}">
+    <script src="{% static 'store/js/jquery-1.11.2.min.js' %}"></script>
+    <script src="{% static 'store/js/allgames_filter.js' %}"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/allgames.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Games</h1>
-    <h3 class="header">Filter results</h3>
-    <div class="form-group">
-        <div class="input-group">
-            <span class="input-group-addon" id="name_filter_addon">Title</span>
-            <input id="name_filter" type="text" class="form-control" placeholder="Name of game" aria-describedby="name_filter_addon">
+    <div class="container">
+        <h1>Games</h1>
+        <h3 class="header">Filter results</h3>
+        <div class="form-group">
+            <div class="input-group">
+                <span class="input-group-addon" id="name_filter_addon">Title</span>
+                <input id="name_filter" type="text" class="form-control" placeholder="Name of game" aria-describedby="name_filter_addon">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="input-group">
+                <span class="input-group-addon" id="tag_filter_addon">Tags</span>
+                <input id="tag_filter" type="text" class="form-control" placeholder="Tags separated by spaces" aria-describedby="tag_filter_addon">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="input-group">
+                <span class="input-group-addon" id="price_filter_addon1">Price</span>
+                <input id="price_filter_low" type="text" class="form-control" placeholder="0 €" aria-describedby="price_filter_addon1">
+                <span class="input-group-addon" id="price_filter_addon2">to</span>
+                <input id="price_filter_high" type="text" class="form-control" placeholder="unlimited" aria-describedby="price_filter_addon2">
+            </div>
         </div>
     </div>
-    <div class="form-group">
-        <div class="input-group">
-            <span class="input-group-addon" id="tag_filter_addon">Tags</span>
-            <input id="tag_filter" type="text" class="form-control" placeholder="Tags separated by spaces" aria-describedby="tag_filter_addon">
-        </div>
+    <div id="gamelist" class="container">
+        {% for g in games %}
+            <h3>{{ g.title }}</h3>
+            <div class="row">
+                <div class="col-md-2">
+                    <img src="{% static 'store/images/russia.jpeg' %}" alt="picture of game"></img>
+                </div>
+                <div class="col-md-6">
+                    {% if g.description %}
+                        <p>{{ g.description }}</p>
+                    {% else %}
+                        <p>No description available.</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-2">
+                    <span>Tags: </span>
+                    <ul>
+                    {% for t in g.get_tags %}
+                        <li>{{ t }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-md-2">
+                {% if g not in owned %}
+                    {% if g.price > 0 %}
+                    <p>{{ g.price }} €</p>
+                    <form action="/checkout" method="post">  {% csrf_token %}
+                        <input name="game_id" type="hidden" value="{{ g.pk }}">
+                        <button type="submit" formaction="/checkout">Buy now</button>
+                    </form>
+                    {% else %}
+                    <p>FREE!</p>
+                    <button>Add to my games</button>
+                    {% endif %}
+                {% else %}
+                    <p>In my games</p>
+                {% endif %}
+                </div>
+            </div>
+        {% endfor %}
     </div>
-    <div class="form-group">
-        <div class="input-group">
-            <span class="input-group-addon" id="price_filter_addon1">Price</span>
-            <input id="price_filter_low" type="text" class="form-control" placeholder="0 €" aria-describedby="price_filter_addon1">
-            <span class="input-group-addon" id="price_filter_addon2">to</span>
-            <input id="price_filter_high" type="text" class="form-control" placeholder="unlimited" aria-describedby="price_filter_addon2">
-        </div>
-    </div>
-</div>
-<div id="gamelist" class="container">
-    {% for g in games %}
-    <h3>{{ g.title }}</h3>
-    <div class="row">
-        <div class="col-md-2">
-            <img src="" alt="picture of game"></img>
-        </div>
-        <div class="col-md-6">
-            <p>Description</p>
-        </div>
-        <div class="col-md-2">
-            <span>Tags: </span>
-            <ul>
-            {% for t in g.get_tags %}
-                <li>{{ t }}</li>
-            {% endfor %}
-            </ul>
-        </div>
-        <div class="col-md-2">
-        {% if g not in owned %}
-            {% if g.price > 0 %}
-            <p>{{ g.price }} €</p>
-            <form action="/checkout" method="post">  {% csrf_token %}
-                <input name="game_id" type="hidden" value="{{ g.pk }}">
-                <button type="submit" formaction="/checkout">Buy now</button>
-            </form>
-            {% else %}
-            <p>FREE!</p>
-            <button>Add to my games</button>
-            {% endif %}
-        {% else %}
-            <p>In my games</p>
-        {% endif %}
-        </div>
-    </div>
-    {% endfor %}
-</div>
 {% endblock %}

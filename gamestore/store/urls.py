@@ -2,9 +2,6 @@ from django.conf.urls import *
 from store.views import *
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'gamestore.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
 
     url(r'^login/?$', login_view, name="login"), #'django.contrib.auth.views.login', {'template_name': 'store/login.html'}),
     url(r'^auth/?$', auth_view),
@@ -13,8 +10,9 @@ urlpatterns = patterns('',
     url(r'^signup/?$', signup_view, name="signup"),
     url(r'^signup_success/(\d+)$', signup_success_view),
     url(r'^(?:allgames)?/?$', all_games_view, name="allgames"),
+    url(r'^allgames/?(\d+)', game_detailed, name="game_detailed"),
     url(r'^mygames/?$', my_games_view, name="mygames"),
-    url(r'^mygames/(\d+)$', play_view, name="play"),
+    url(r'^mygames/(\d+)/?$', play_view, name="play"),
     url(r'^checkout/?$', checkout_view),
     url(r'^dev/$', developer_view, name="dev_home"), # NOTE: must use terminating slash for relative urls to work
     url(r'^dev/newgame/?$', dev_new_game_view),
