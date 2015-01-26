@@ -139,6 +139,22 @@ def all_games_view(request):
         return render(request, 'store/allgames.html', {'games' : games, 'owned' : owned_games})
     # default behaviour for devs and unregistered users:
     return render(request, 'store/allgames.html', {'games' : games, 'owned' : set()})
+
+def game_detailed(request, game):
+    """
+    Detailed view for a game. Includes highscores and the possibility to purchase the game.
+    """
+    try:
+        g = Game.objects.get(pk=game)
+    except:
+        raise Http404('Invalid Game ID')
+
+    if request.user.is_authenticated() and is_player(request.user):
+        # players may own games: don't let them buy the same game twice:
+        owned_games = list(x.game for x in request.user.ownedgame_set.all())       
+        return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : owned_games})
+    # default behaviour for devs and unregistered users:
+    return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : set()})
  
 @login_required
 @user_passes_test(is_player, "/denied")

@@ -1,0 +1,6 @@
+/* Medium devices (desktops, 992px and up) */
+@media (max-width: 767px) {
+    div {
+    text-align: center;
+    }
+}
