@@ -85,6 +85,7 @@ STATIC_URL = '/static/'
 
 LOGIN_URL = '/login'
 
+
 TEMPLATE_CONTEXT_PROCESSORS = ("django.contrib.auth.context_processors.auth",
 "django.core.context_processors.debug",
 "django.core.context_processors.i18n",
@@ -92,8 +93,18 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.contrib.auth.context_processors.auth",
 "django.core.context_processors.static",
 "django.core.context_processors.tz",
 "django.contrib.messages.context_processors.messages",
-'django.core.context_processors.request',
+'django.core.context_processors.request', # to get the username in navbar etc.
 )
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # enables email validation
+
+# heroku stuff:
+if "DYNO" in os.environ:
+    #DEBUG = False
+    ALLOWED_HOSTS = ['*']    
+    STATIC_ROOT = 'staticfiles'
+    import dj_database_url
+    DATABASES['default'] =  dj_database_url.config()
+    
+
 
