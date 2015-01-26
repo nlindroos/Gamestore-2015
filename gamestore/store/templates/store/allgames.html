@@ -11,20 +11,26 @@
 {% block content %}
 <div class="container">
     <h1>Games</h1>
-    <h3>Filter results</h3>
-    <div class="input-group">
-        <span class="input-group-addon" id="name_filter_addon">Title</span>
-        <input id="name_filter" type="text" class="form-control" placeholder="Name of game" aria-describedby="name_filter_addon">
+    <h3 class="header">Filter results</h3>
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon" id="name_filter_addon">Title</span>
+            <input id="name_filter" type="text" class="form-control" placeholder="Name of game" aria-describedby="name_filter_addon">
+        </div>
     </div>
-    <div class="input-group">
-        <span class="input-group-addon" id="tag_filter_addon">Tags</span>
-        <input id="tag_filter" type="text" class="form-control" placeholder="Tags separated by spaces" aria-describedby="tag_filter_addon">
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon" id="tag_filter_addon">Tags</span>
+            <input id="tag_filter" type="text" class="form-control" placeholder="Tags separated by spaces" aria-describedby="tag_filter_addon">
+        </div>
     </div>
-    <div class="input-group">
-        <span class="input-group-addon" id="price_filter_addon1">Price</span>
-        <input id="price_filter_low" type="text" class="form-control" placeholder="0 €" aria-describedby="price_filter_addon1">
-        <span class="input-group-addon" id="price_filter_addon2">to</span>
-        <input id="price_filter_high" type="text" class="form-control" placeholder="unlimited" aria-describedby="price_filter_addon2">
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon" id="price_filter_addon1">Price</span>
+            <input id="price_filter_low" type="text" class="form-control" placeholder="0 €" aria-describedby="price_filter_addon1">
+            <span class="input-group-addon" id="price_filter_addon2">to</span>
+            <input id="price_filter_high" type="text" class="form-control" placeholder="unlimited" aria-describedby="price_filter_addon2">
+        </div>
     </div>
 </div>
 <div id="gamelist" class="container">

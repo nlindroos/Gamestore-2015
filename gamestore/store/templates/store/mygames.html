@@ -1,17 +1,25 @@
 {% extends "store/base.html" %}
+{% load staticfiles %}
+{% block head %}
+<link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/mygames.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="container">
     {% for g in game_set %}
-        <h3>{{ g.title }}</h3>
+        <a href="{% url 'play' g.pk %}"><h3>{{ g.title }}</h3></a>
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-sm-2">
                 <img src="" alt="picture of game"></img>
             </div>
-            <div class="col-md-6">
-                <p>Description</p>
+            <div class="col-sm-6">
+                {% if g.description %}
+                <p>{{ g.description }}</p>
+                {% else %}
+                <p>No description available.</p>
+                {% endif %}
             </div>
-            <div class="col-md-2">
+            <div class="col-sm-2">
                 <span>Tags: </span>
                 <ul>
                 {% for t in g.get_tags %}
