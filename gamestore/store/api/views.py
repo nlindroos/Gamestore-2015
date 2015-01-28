@@ -115,15 +115,14 @@ def api_view(request, titles='', developers='', tags=''):
     # ?expand=highscores_number :
     scores = 0
     for e in expand:
-        m = match(r'highscores_(\d)+', e)
+        m = match(r'highscores_((?:\d)+)', e)
         if m:
             try:
                 scores = int(m.group(1))
-            except ValueError:
+            except ValueError as err:
                 pass
             else:
                 break
-    
     tagfilter = request.GET.get('tagfilter', 'all')        
     # because tags is a comma separated string, we must handle it separately (outside of the query):
     if tags:
@@ -159,7 +158,7 @@ def api_view(request, titles='', developers='', tags=''):
         if scores:
             key = 'highscores_top_' + str(scores) 
             d[key] = []
-            for s in list(g.highscore_set.all())[:scores-1]:
+            for s in list(g.highscore_set.all())[:scores]:
                 d[key].append({'time' : str(s.date_time), 'player' : s.player.username, 'score' : str(s.score)})                
         result['games'].append(d)        
         
