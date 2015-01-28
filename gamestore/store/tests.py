@@ -55,6 +55,31 @@ class TestUsers(TestCase):
         self.assertEqual(is_developer(p), False, "p is a not a developer")
         self.assertEqual(is_developer(d), True, "d is a developer")
         self.assertEqual(is_developer(None), None, "None is not a player, and not a developer")
+    
+    def test_access_decorators(self):
+        p = User.objects.get(pk=3)
+        d = User.objects.get(pk=4)
+        fake_request = DummyObject()
+        def fake_view(request):
+            return "success"
+        
+        decorated = must_be_player(fake_view) 
+        
+        fake_request.user = p
+        response = decorated(fake_request)
+        self.assertEqual(response, 'success')
+        fake_request.user = d
+        response = decorated(fake_request)
+        self.assertEqual(response.status_code, 403)
+        
+        decorated = must_be_developer(fake_view) 
+        
+        fake_request.user = d
+        response = decorated(fake_request)
+        self.assertEqual(response, 'success')
+        fake_request.user = p
+        response = decorated(fake_request)
+        self.assertEqual(response.status_code, 403)
         
 class TestGameForm(TestCase):
     """
@@ -244,4 +269,25 @@ class TestSignupView(TestCase):
         self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
         self.assertEqual(response.url, 'http://testserver/loggedin', "Response url should be loggedin")
         
+class TestDevView(TestCase):
+    fixtures = ['groups.json', 'users.json']
+    
+    def setUp(self):
+        # Every test needs a client.
+        self.client = Client()
+        
+    def test_only_dev_access(self):
+        #NOTE: in get requests below: trailing slash is important, otherwise will redirect form dev to dev/!
+        response = self.client.get('/dev/')
+        self.assertEqual(response.status_code, 302, "Anonymous should be redirected to login")
+        self.assertEqual(response.url, 'http://testserver/login?next=/dev/', "Response url should be login")
+        
+        self.assertEqual(True, self.client.login(username="player", password="player"))
+        response = self.client.get('/dev/')
+        self.assertEqual(response.status_code, 403, "Should not have permission")
+        
+        self.assertEqual(True, self.client.login(username="dev", password="dev"))
+        response = self.client.get('/dev/')
+        self.assertEqual(response.status_code, 200, "Should have permission")
+    
         

@@ -7,6 +7,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count, Min, Sum, Avg
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
+from django.core.exceptions import PermissionDenied
 
 from store.forms import MyRegistrationForm, GameForm
 from store.models import *
@@ -50,13 +51,36 @@ def is_developer(user):
             return False
         else:
             return True
+            
+def must_be_player(view):
+    """
+    Decorator to apply to views only for players.
+    """
+    def decorator(*args, **kwargs):
+        if not is_player(args[0].user):
+            return denied_view(args[0], reason="Only players have access to this page.")
+        else:
+            return view(*args, **kwargs)
+    return decorator
+    
+def must_be_developer(view):
+    """
+    Decorator to apply to views only for developers.
+    """
+    def decorator(*args, **kwargs):
+        if not is_developer(args[0].user):
+            return denied_view(args[0], reason="Only developers have access to this page.")
+        else:
+            return view(*args, **kwargs)
+    return decorator
 
 
-def denied_view(request):
+def denied_view(request, reason):
     """
     Shown whenever access is not allowed.
+    Response code is always 403 (Permission denied).
     """
-    return render(request, 'store/denied.html')
+    return render(request, 'store/denied.html', {'reason' : reason}, status=403)
     
 
 def login_view(request):
@@ -157,7 +181,7 @@ def game_detailed(request, game):
     return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : set()})
  
 @login_required
-@user_passes_test(is_player, "/denied")
+@must_be_player
 def my_games_view(request):
     """
     View that lists all games owned by a player.
@@ -168,7 +192,7 @@ def my_games_view(request):
 
 
 @login_required
-@user_passes_test(is_player, "/denied")
+@must_be_player
 def play_view(request, game):
     """
     View that allows a player to play a game he/she owns.
@@ -192,7 +216,7 @@ def play_view(request, game):
     return render(request, 'store/playgame.html', {'gamename' : g.title, 'gameurl' : g.url, 'gameid' : game})
         
 @login_required
-@user_passes_test(is_player, "/denied")
+@must_be_player
 def checkout_view(request):
     """
     View for buying games using the niksula payment service.
@@ -227,7 +251,7 @@ def checkout_view(request):
     return render_to_response('store/checkout.html', dictator)
     
 @login_required
-@user_passes_test(is_developer, "/denied")
+@must_be_developer
 def developer_view(request):
     """
     View that lists all games submitted by a developer and shows some relevant stats.
@@ -235,14 +259,11 @@ def developer_view(request):
     User must be logged in as a developer.
     """
     games = Game.objects.filter(developer=request.user).annotate(Sum('purchase__fee')).annotate(Count('purchase'))
-    # TODO: remove prints!!!!
-    print(games.query)
-    print(list(games))
     
     return render(request, 'store/developer.html', {'games' : games, 'devname' : request.user.username})
 
 @login_required
-@user_passes_test(is_developer, "/denied")
+@must_be_developer
 def dev_game_edit_view(request, game):
     """
     View that lets a developer edit one of his/her previously submitted games.
@@ -278,7 +299,7 @@ def dev_game_edit_view(request, game):
     return render(request, 'store/editgame.html', {'game' : g})
     
 @login_required
-@user_passes_test(is_developer, "/denied")
+@must_be_developer
 def dev_new_game_view(request):
     """
     View that lets a developer submit a new game.
@@ -311,7 +332,7 @@ def dev_new_game_view(request):
     return render(request, 'store/editgame.html')
 
 @login_required
-@user_passes_test(is_player, "/denied")   
+@must_be_player
 def gamestate_ajax_view(request, game):
     """
     View for AJAX requests for saving/loading a game.
@@ -350,7 +371,7 @@ def gamestate_ajax_view(request, game):
     raise Http404('')
 
 @login_required     
-@user_passes_test(is_player, "/denied")       
+@must_be_player     
 def gamescore_ajax_view(request, game):
     """
     View for AJAX requests for sending highscores to the server.
