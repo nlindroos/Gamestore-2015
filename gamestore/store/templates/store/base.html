@@ -2,6 +2,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/bootstrap/css/bootstrap-theme.min.css' %}">
     <link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/base.css' %}">
@@ -23,6 +25,7 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav navbar-right">
                     {% if request.user.is_authenticated %}
+                    <!-- If the user is a Player -->
                     {% if "Players" == request.user.groups.all.0.name  %}
                     <li><a href="{% url 'mygames' %}">My games</a></li>
                     {% else %}

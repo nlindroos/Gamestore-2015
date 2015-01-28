@@ -37,25 +37,25 @@
         {% for g in games %}
             <h3>{{ g.title }}</h3>
             <div class="row">
-                <div class="col-sm-2">
-                    <img src="{% static 'store/images/russia.jpeg' %}" alt="picture of game"></img>
+                <div class="col-md-2">
+                    <img src="{% static 'store/images/russia.jpeg' %}" class="img-thumbnail" alt="picture of game"></img>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-md-5">
                     {% if g.description %}
                         <p>{{ g.description }}</p>
                     {% else %}
                         <p>No description available.</p>
                     {% endif %}
                 </div>
-                <div class="col-sm-2">
+                <div class="col-md-3">
                     <span>Tags: </span>
-                    <ul>
+                    <ul class="list-unstyled">
                     {% for t in g.get_tags %}
                         <li>{{ t }}</li>
                     {% endfor %}
                     </ul>
                 </div>
-                <div class="col-sm-2">
+                <div class="col-md-2">
                 {% if g not in owned %}
                     {% if g.price > 0 %}
                     <p>{{ g.price }} €</p>

@@ -1,7 +1,19 @@
+/* Medium devices (desktops, 992px and up) */
+@media (max-width: 992px) {
+    div {
+    text-align: center;
+    }
+}
+
 .input-group {
     margin-bottom: 20px;
 }
 
 .header {
     margin-bottom: 25px;
+}
+
+ul {
+    /* Prevents dots from moving to the far left in (at least) Chrome */
+    list-style-position: inside;
 }

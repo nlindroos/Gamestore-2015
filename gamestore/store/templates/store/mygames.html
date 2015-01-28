@@ -10,7 +10,7 @@
             <a href="{% url 'play' g.pk %}"><h3>{{ g.title }}</h3></a>
             <div class="row">
                 <div class="col-sm-2">
-                    <img src="{% static 'store/images/russia.jpeg' %}" alt="picture of game"></img>
+                    <img src="{% static 'store/images/russia.jpeg' %}" class="img-thumbnail" alt="picture of game"></img>
                 </div>
                 <div class="col-sm-6">
                     {% if g.description %}
