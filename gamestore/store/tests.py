@@ -1,6 +1,6 @@
 from django.test import TestCase, RequestFactory
 from django.test.client import Client
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group, AnonymousUser
 from store.models import *
 from store.views import *
 from store.forms import *
@@ -13,72 +13,96 @@ class DummyObject(object):
     Instant object, just add attributes!
     """
     pass
+    
+def fake_view(request):
+    return "success"
 
 class TestUsers(TestCase):
     fixtures = ['groups.json', 'users.json']
     
+    def setUp(self):
+        self.admin = User.objects.get(pk=1)
+        self.player = User.objects.get(pk=3)
+        self.dev = User.objects.get(pk=4)
+        self.nogroup = User.objects.get(pk=5)
+    
     def test_user_basics(self):
-        player = User.objects.get(pk=3)
-        self.assertEqual(player.first_name, "John", "First name should be John.")
-        self.assertEqual(player.last_name, "Tester", "Last name should be Tester.")
+        self.assertEqual(self.player.first_name, "John", "First name should be John.")
+        self.assertEqual(self.player.last_name, "Tester", "Last name should be Tester.")
 
-    def test_user_groups(self):
-        admin = User.objects.get(pk=1)
-        u1 = User.objects.get(pk=3)
-        u2 = User.objects.get(pk=4)
-        u3 = User.objects.get(pk=5)
+    def test_user_groups(self):        
+        self.assertEqual(self.player.groups.filter(name="Players").count(), 1, "User 1 is a player")
+        self.assertEqual(self.player.groups.all().count(), 1, "User 1 is only a player")
         
-        self.assertEqual(u1.groups.filter(name="Players").count(), 1, "User 1 is a player")
-        self.assertEqual(u1.groups.all().count(), 1, "User 1 is only a player")
-        
-        self.assertEqual(u2.groups.filter(name="Developers").count(), 1, "User 2 is a developer")
-        self.assertEqual(u2.groups.all().count(), 1, "User 2 is only a developer")
+        self.assertEqual(self.dev.groups.filter(name="Developers").count(), 1, "User 2 is a developer")
+        self.assertEqual(self.dev.groups.all().count(), 1, "User 2 is only a developer")
         
         # NOTE: Admin is both player and developer, actual users are not allowed to be both
-        self.assertEqual(admin.groups.filter(name="Players").count(), 1, "User 3 is a player")
-        self.assertEqual(admin.groups.filter(name="Developers").count(), 1, "User 3 is a developer")
-        self.assertEqual(admin.groups.all().count(), 2, "User 3 has no more groups besides player and developer")
+        self.assertEqual(self.admin.groups.filter(name="Players").count(), 1, "User 3 is a player")
+        self.assertEqual(self.admin.groups.filter(name="Developers").count(), 1, "User 3 is a developer")
+        self.assertEqual(self.admin.groups.all().count(), 2, "User 3 has no more groups besides player and developer")
         
         # NOTE: all actual users should be either players or developers, but this test user is neither
-        self.assertEqual(u3.groups.all().count(), 0, "User 3 has no groups")
+        self.assertEqual(self.nogroup.groups.all().count(), 0, "User 4 has no groups")
         
     def test_is_player(self):
-        p = User.objects.get(pk=3)
-        d = User.objects.get(pk=4)
-        self.assertEqual(is_player(p), True, "p is a player")
-        self.assertEqual(is_player(d), False, "d is not a player")
-        self.assertEqual(is_player(None), None, "None is not a player, and not a developer")
+        self.assertEqual(is_player(self.player), True, "player is a player")
+        self.assertEqual(is_player(self.admin), True, "admin is a player")
+        self.assertEqual(is_player(self.dev), False, "developer is not a player")
+        self.assertEqual(is_player(self.nogroup), False, "groupless user is not a player")
         
     def test_is_developer(self):
-        p = User.objects.get(pk=3)
-        d = User.objects.get(pk=4)
-        self.assertEqual(is_developer(p), False, "p is a not a developer")
-        self.assertEqual(is_developer(d), True, "d is a developer")
-        self.assertEqual(is_developer(None), None, "None is not a player, and not a developer")
+        self.assertEqual(is_developer(self.player), False, "player is not a developer")
+        self.assertEqual(is_developer(self.admin), True, "admin is a developer")
+        self.assertEqual(is_developer(self.dev), True, "developer is a developer")
+        self.assertEqual(is_developer(self.nogroup), False, "groupless user is not a developer")
+
+class TestDecorators(TestCase):    
+    fixtures = ['groups.json', 'users.json']
     
-    def test_access_decorators(self):
-        p = User.objects.get(pk=3)
-        d = User.objects.get(pk=4)
-        fake_request = DummyObject()
-        def fake_view(request):
-            return "success"
+    def setUp(self):
+        self.player = User.objects.get(pk=3)
+        self.dev = User.objects.get(pk=4)
+        self.anon = AnonymousUser()
+        self.client = Client()
+        self.fake_request = DummyObject()
         
-        decorated = must_be_player(fake_view) 
+    def test_login_only1(self):
+        def dummy(request):
+            pass
+        pretty_dummy = login_only(dummy)
+        self.assertEqual(pretty_dummy.login_only, True, 'decorator should add info about login_only')
+    
+    def test_login_only2(self):
+        self.assertEqual(developer_view.login_only, True, 'checking that this view has login_only (so that next asserts are valid)')
+        response = self.client.get('/dev/')
+        self.assertEqual(response.status_code, 302, "should redirect")
+        self.assertEqual(response.url, 'http://testserver/login?next=/dev/', "Response url should be login")
         
-        fake_request.user = p
-        response = decorated(fake_request)
+        self.assertEqual(True, self.client.login(username="dev", password="dev"))
+        response = self.client.get('/dev/')
+        self.assertEqual(response.status_code, 200, "Should have permission")
+    
+    def test_players_only(self):
+        decorated = players_only(fake_view) 
+        self.assertEqual(decorated.players_only, True, 'decorator should add info about players_only')
+        
+        self.fake_request.user = self.player
+        response = decorated(self.fake_request)
         self.assertEqual(response, 'success')
-        fake_request.user = d
-        response = decorated(fake_request)
+        self.fake_request.user = self.dev
+        response = decorated(self.fake_request)
         self.assertEqual(response.status_code, 403)
+    
+    def test_developers_only(self):
+        decorated = developers_only(fake_view) 
+        self.assertEqual(decorated.developers_only, True, 'decorator should add info about developers_only')
         
-        decorated = must_be_developer(fake_view) 
-        
-        fake_request.user = d
-        response = decorated(fake_request)
+        self.fake_request.user = self.dev
+        response = decorated(self.fake_request)
         self.assertEqual(response, 'success')
-        fake_request.user = p
-        response = decorated(fake_request)
+        self.fake_request.user = self.player
+        response = decorated(self.fake_request)
         self.assertEqual(response.status_code, 403)
         
 class TestGameForm(TestCase):
@@ -270,24 +294,8 @@ class TestSignupView(TestCase):
         self.assertEqual(response.url, 'http://testserver/loggedin', "Response url should be loggedin")
         
 class TestDevView(TestCase):
-    fixtures = ['groups.json', 'users.json']
     
-    def setUp(self):
-        # Every test needs a client.
-        self.client = Client()
-        
-    def test_only_dev_access(self):
-        #NOTE: in get requests below: trailing slash is important, otherwise will redirect form dev to dev/!
-        response = self.client.get('/dev/')
-        self.assertEqual(response.status_code, 302, "Anonymous should be redirected to login")
-        self.assertEqual(response.url, 'http://testserver/login?next=/dev/', "Response url should be login")
-        
-        self.assertEqual(True, self.client.login(username="player", password="player"))
-        response = self.client.get('/dev/')
-        self.assertEqual(response.status_code, 403, "Should not have permission")
-        
-        self.assertEqual(True, self.client.login(username="dev", password="dev"))
-        response = self.client.get('/dev/')
-        self.assertEqual(response.status_code, 200, "Should have permission")
-    
+    def test_decorators(self):
+        self.assertEqual(developer_view.login_only, True)
+        self.assertEqual(developer_view.developers_only, True)
         

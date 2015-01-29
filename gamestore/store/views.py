@@ -2,12 +2,11 @@ from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import render, render_to_response
 from django.contrib import auth
 from django.core.context_processors import csrf
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count, Min, Sum, Avg
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
-from django.core.exceptions import PermissionDenied
 
 from store.forms import MyRegistrationForm, GameForm
 from store.models import *
@@ -18,60 +17,65 @@ def is_player(user):
     """
     Utility function.
     
-    Args:
-        user: a django.contrib.auth.models.User object
-    
-    Returns true if a user is a player.
-    If the user is not a player, returns False.
-    If the user is None, returns None.
+    Checks if the user is a player (i.e. has group Players).
+    If yes, returns True, otherwise False.
     """
-    if user:
-        try:
-            user.groups.get(name='Players')
-        except:
-            return False
-        else:
-            return True
+    return bool(user.groups.filter(name="Players"))
     
 def is_developer(user):
     """
     Utility function.
     
-    Args:
-        user: a django.contrib.auth.models.User object
-    
-    Returns true if a user is a developer.
-    If the user is not a developer, returns False.
-    If the user is None, returns None.
+    Checks if the user is a developer (i.e. has group Developers).
+    If yes, returns True, otherwise False.
     """
-    if user:
-        try:
-            user.groups.get(name='Developers')
-        except:
-            return False
-        else:
-            return True
+    return bool(user.groups.filter(name="Developers"))
+
+def login_only(view):
+    """
+    Decorator that allows only logged in users to access a view
+    (just like django's login_required) 
+    AND marks the decorated views with a flag (requires_login=True) so that 
+    it is possible to tell that this decorator was applied to the view (e.g. in tests).
+    """
+    decorator = login_required(view)
+    decorator.login_only = True
+    return decorator 
             
-def must_be_player(view):
+def players_only(view):
     """
     Decorator to apply to views only for players.
+    Denies access for non-players.
+    
+    Marks the decorated views with a flag (players_only=True) so that 
+    it is possible to tell that this decorator was applied to the view (e.g. in tests).
     """
     def decorator(*args, **kwargs):
         if not is_player(args[0].user):
+            # NOTE: this is NOT supposed to be a redirect!
+            #       it renders the current page as denied (403)
             return denied_view(args[0], reason="Only players have access to this page.")
         else:
             return view(*args, **kwargs)
+    decorator.players_only = True
     return decorator
     
-def must_be_developer(view):
+def developers_only(view):
     """
     Decorator to apply to views only for developers.
+    Denies access for non-developers.
+    
+    Marks the decorated views with a flag (developers_only=True) so that 
+    it is possible to tell that this decorator was applied to the view (e.g. in tests).
     """
     def decorator(*args, **kwargs):
         if not is_developer(args[0].user):
+            # NOTE: this is NOT supposed to be a redirect!
+            #       it renders the current page as denied (403)
             return denied_view(args[0], reason="Only developers have access to this page.")
         else:
             return view(*args, **kwargs)
+    decorator.developers_only = True
     return decorator
 
 
@@ -180,8 +184,8 @@ def game_detailed(request, game):
     # default behaviour for devs and unregistered users:
     return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : set()})
  
-@login_required
-@must_be_player
+@login_only
+@players_only
 def my_games_view(request):
     """
     View that lists all games owned by a player.
@@ -191,8 +195,8 @@ def my_games_view(request):
     return render(request, 'store/mygames.html', {'game_set': owned_games})
 
 
-@login_required
-@must_be_player
+@login_only
+@players_only
 def play_view(request, game):
     """
     View that allows a player to play a game he/she owns.
@@ -215,8 +219,8 @@ def play_view(request, game):
         
     return render(request, 'store/playgame.html', {'gamename' : g.title, 'gameurl' : g.url, 'gameid' : game})
         
-@login_required
-@must_be_player
+@login_only
+@players_only
 def checkout_view(request):
     """
     View for buying games using the niksula payment service.
@@ -250,8 +254,8 @@ def checkout_view(request):
     owned.save()
     return render_to_response('store/checkout.html', dictator)
     
-@login_required
-@must_be_developer
+@login_only
+@developers_only
 def developer_view(request):
     """
     View that lists all games submitted by a developer and shows some relevant stats.
@@ -262,8 +266,8 @@ def developer_view(request):
     
     return render(request, 'store/developer.html', {'games' : games, 'devname' : request.user.username})
 
-@login_required
-@must_be_developer
+@login_only
+@developers_only
 def dev_game_edit_view(request, game):
     """
     View that lets a developer edit one of his/her previously submitted games.
@@ -298,8 +302,8 @@ def dev_game_edit_view(request, game):
             return render(request, 'store/editgame.html', c)
     return render(request, 'store/editgame.html', {'game' : g})
     
-@login_required
-@must_be_developer
+@login_only
+@developers_only
 def dev_new_game_view(request):
     """
     View that lets a developer submit a new game.
@@ -331,8 +335,8 @@ def dev_new_game_view(request):
             return render(request, 'store/editgame.html', c)
     return render(request, 'store/editgame.html')
 
-@login_required
-@must_be_player
+@login_only
+@players_only
 def gamestate_ajax_view(request, game):
     """
     View for AJAX requests for saving/loading a game.
@@ -370,8 +374,8 @@ def gamestate_ajax_view(request, game):
                 return HttpResponse("Game state saved successfully!", content_type="text/plain")
     raise Http404('')
 
-@login_required     
-@must_be_player     
+@login_only     
+@players_only     
 def gamescore_ajax_view(request, game):
     """
     View for AJAX requests for sending highscores to the server.
