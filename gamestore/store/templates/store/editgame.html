@@ -97,7 +97,7 @@
                 {% if game %}
                 {% for t in game.get_tags %}
                     <div class="input-group">
-                        <input type="text" id="tag{{ forloop.counter }}" name="tags[]" placeholder="{{ t }}" class="form-control" value="{{ t }}"></input>
+                        <input type="text" id="tag{{ forloop.counter }}" name="tags[]" placeholder="{{ t }}" class="form-control" value="{{ t }}" maxlength="25"></input>
                         <span id="delete_tag{{ forloop.counter }}" class="input-group-addon tag_remover">Remove</span>
                     </div>
                 {% endfor %}
@@ -108,9 +108,9 @@
                     </div>
                 {% endif %}
             </div>
-                <button id="addtag" type="button">Add tag</button><!-- type="button" must be used so this doesn't submit the form-->
-                <p></p>
-                <input type="submit" value="Submit game"></input>
+            <button id="addtag" type="button">Add tag</button><!-- type="button" must be used so this doesn't submit the form-->
+            <p></p>
+            <input type="submit" value="Submit game"></input>
         </form>
     </div>
 {% endblock %}
