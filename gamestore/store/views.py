@@ -231,7 +231,7 @@ def play_view(request, game):
 def checkout_view(request):
     """
     View for buying games using the niksula payment service.
-    View creates new Purchase objects, calculates checksums and other variables required by the niskula payment service.
+    View creates new Purchase objects, calculates checksums and other variables required by the niksula payment service.
     
     User must be logged in as a player who does not own the game being purchased.
     """

@@ -2,13 +2,19 @@ function search_by_name(name) {
    "use strict";
    var games = $("#gamelist h3").map(function() {
       // If not found
+      var row = $(this).next("div.row");
       if ($(this).html().toLowerCase().indexOf(name.toLowerCase()) === -1) {
-         $(this).next().hide();
+         row.addClass("name");
+         row.hide();
          $(this).hide();
       }
-      else {
-         $(this).next().show();
+      else if (!row.hasClass("low") && !row.hasClass("high") && !row.hasClass("tag")) {
+         row.removeClass("name");
+         row.show();
          $(this).show();
+      }
+      else {
+         row.removeClass("name");
       }
    });
 }
@@ -18,6 +24,7 @@ function search_by_tag(tagstring) {
    var games = $("#gamelist h3").map(function() {
       var tags = tagstring.split();
       var hide = false;
+      var row = $(this).next("div.row");
 
       //ok, so we need to filter out the ones where
       //    one or more of the tags is not matched by any of the <li> contents
@@ -41,13 +48,18 @@ function search_by_tag(tagstring) {
          }
       }
       if (hide) {
+         row.addClass("tag");
          $(this).next().hide();
          $(this).hide();
       }
-      else {
+      else if (!row.hasClass("low") && !row.hasClass("high") && !row.hasClass("name")) {
+         row.removeClass("tag");
          $(this).next().show();
          $(this).show();
       } 
+      else {
+         row.removeClass("tag");
+      }
    });
 }
 
@@ -64,7 +76,7 @@ function limit_by_price(limit, lower) {
       if (lower) {
          if (price==="FREE!") {
             // isNaN added for when all input is deleted
-            if (floatLimit===0 || isNaN(limit)) {
+            if ((floatLimit===0 || isNaN(limit)) && !row.hasClass("name") && !row.hasClass("tag")) {
                row.removeClass("low");
                row.show();
                row.prev("h3").show();
@@ -82,7 +94,7 @@ function limit_by_price(limit, lower) {
             row.prev("h3").hide();
          }
 
-         else if (!row.hasClass("high")) {
+         else if (!row.hasClass("high") && !row.hasClass("name") && !row.hasClass("tag")) {
             row.removeClass("low");
             row.show();
             row.prev("h3").show();
@@ -100,7 +112,7 @@ function limit_by_price(limit, lower) {
                row.hide();
                row.prev("h3").hide();
             }
-            else if (!row.hasClass("low")) {
+            else if (!row.hasClass("low") && !row.hasClass("name") && !row.hasClass("tag")) {
                row.removeClass("high");
                row.show();
                row.prev("h3").show();
