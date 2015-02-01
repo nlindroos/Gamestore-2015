@@ -86,6 +86,21 @@
                 {% endif %}
             </div>
             <div class="form-group">
+                <label for="img_url">Image URL:</label>
+                {% if form.img_url.errors %}
+                    {% for error in form.img_url.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                {% if game %}
+                <input id="img_url" name="img_url" type="url" value="{{ game.img_url }}" placeholder="{{ game.img_url }}" class="form-control"></input>
+                {% else %}
+                <input id="img_url" name="img_url" type="url" placeholder="http://example.com/gamepic.jpg" class="form-control"></input>
+                {% endif %}
+            </div>
+            <div class="form-group">
                 <label for="tag0">Tags:</label>
                 {% if form.tags.errors %}
                     {% for error in form.tags.errors %}

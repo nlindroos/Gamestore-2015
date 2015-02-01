@@ -1,21 +1,37 @@
 {% extends "store/base.html" %}
 
+{% block head %}
+    <script src="store/js/jquery-1.11.2.min.js"></script>
+{% endblock %}
+
 {% block content %}
     <div class="container">
         <h2>Checkout</h2>
-        <p>You are planning to buy &quot;{{ game_title }}&quot;. Do you want to proceed?</p>
-        <form action="http://payments.webcourse.niksula.hut.fi/pay/" method="post">
-                <input type="hidden" name="pid" value="{{ pid }}" />
-                <input type="hidden" name="sid" value="{{ sid }}" />
-                <input type="hidden" name="success_url" value="{{ success_url }}" />
-                <input type="hidden" name="cancel_url" value="{{ cancel_url }}" />
-                <input type="hidden" name="error_url" value="{{ error_url }}" />
-                <input type="hidden" name="checksum" value="{{ checksum }}" />
-                <input type="hidden" name="amount" value="{{price}}" />
+        {% if price > 0 %}
+        <p>You are planning to buy &quot;{{ game_title }}&quot; for {{ price }}€. Do you want to proceed?</p>
+        <form action="http://payments.webcourse.niksula.hut.fi/pay/" method="post"> {% csrf_token %}
+                <input type="hidden" name="pid" value={{ pid }} />
+                <input type="hidden" name="sid" value={{ sid }} />
+                <input type="hidden" name="success_url" value={{ success_url }} />
+                <input type="hidden" name="cancel_url" value={{ cancel_url }} />
+                <input type="hidden" name="error_url" value={{ error_url }} />
+                <input type="hidden" name="checksum" value={{ checksum }} />
+                <input type="hidden" name="amount" value={{ price }} />
             <button type="submit" value="Accept Payment">Yes, more games!</button>
         </form>
-        <form action="/allgames" method="get">
+        <form action={{ cancel_url }} method="get">
             <button type="submit">No, cancel purchase.</button>
         </form>
+        {% else %}
+        <p>You are planning to add the free game &quot;{{ game_title }}&quot; to your games. Do you want to proceed?</p>
+        <form action={{ success_url }} method="get">
+            <input type="hidden" name="pid" value={{ pid }} />
+            <button type="submit">Yes</button>
+        </form>
+        <form action={{ cancel_url }} method="get">
+            <input type="hidden" name="pid" value={{ pid }} />
+            <button type="submit">No</button>
+        </form>
+        {% endif %}
     </div>
 {% endblock %}

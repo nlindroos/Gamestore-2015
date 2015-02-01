@@ -14,6 +14,8 @@ urlpatterns = patterns('',
     url(r'^mygames/?$', my_games_view, name="mygames"),
     url(r'^mygames/(\d+)/?$', play_view, name="play"),
     url(r'^checkout/?$', checkout_view),
+    url(r'^confirm_order/(\d+)$', confirm_order_view),
+    url(r'^cancel_order/(\d+)$', cancel_order_view),
     url(r'^dev/$', developer_view, name="dev_home"), # NOTE: must use terminating slash for relative urls to work
     url(r'^dev/newgame/?$', dev_new_game_view),
     url(r'^dev/editgame/(\d+)$', dev_game_edit_view),

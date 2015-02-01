@@ -19,7 +19,7 @@ class Game(models.Model):
     price = models.DecimalField(max_digits=5, decimal_places=2, null=False, default=0.00, validators=[validate_price])
     tags = models.TextField(null=False, default='', blank=True)
     description = models.TextField(null=False, default='', blank=False)
-    img_url = models.URLField(null=True, blank=True, default=None)
+    img_url = models.URLField(null=True, blank=True, default="store/images/russia.jpeg")
     
     def get_tags(self):
         return [x.strip() for x in self.tags.split(',')] # FIXME: maybe could be better to strip these when saved?
@@ -56,4 +56,5 @@ class Purchase(models.Model):
     game = models.ForeignKey(Game)
     date_time = models.DateTimeField(auto_now_add=True)
     fee = models.DecimalField(max_digits=5, decimal_places=2, null=False, default=0.00)
+    payment_confirmed = models.BooleanField(default=False)
 

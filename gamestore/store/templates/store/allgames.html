@@ -40,7 +40,11 @@
             <h3 class="js-header">{{ g.title }}</h3>
             <div class="row">
                 <div class="col-md-2">
-                    <img src="{% static 'store/images/russia.jpeg' %}" class="img-thumbnail" alt="picture of game"></img>
+                    {% if g.img_url %}
+                        <img src={{ g.img_url }} class="img-thumbnail" alt="picture of game"></img>
+                    {% else %}
+                        <img src="{% static 'store/images/russia.jpeg' %}" class="img-thumbnail" alt="picture of game"></img>
+                    {% endif %}
                 </div>
                 <div class="col-md-5">
                     {% if g.description %}
@@ -67,7 +71,10 @@
                     </form>
                     {% else %}
                     <p class="js-price">FREE!</p>
-                    <button>Add to my games</button>
+                    <form action="/checkout" method="post">  {% csrf_token %}
+                        <input name="game_id" type="hidden" value="{{ g.pk }}">
+                        <button type="submit" formaction="/checkout">Add to my games</button>
+                    </form>
                     {% endif %}
                 {% else %}
                     <p>In my games</p>
