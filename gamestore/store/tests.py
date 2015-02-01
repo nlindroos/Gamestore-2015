@@ -17,6 +17,37 @@ class DummyObject(object):
 def fake_view(request):
     return "success"
 
+class TestGameModel(TestCase):
+    fixtures = ['groups.json', 'users.json']
+    
+    def setUp(self):
+        dev = User.objects.get(pk=4)
+        self.g1 = Game(developer=dev, title='t1', tags='fun,game,buy,please')
+        self.g2 = Game(developer=dev, title='t2', tags='fun,game,cheap')
+        self.g3 = Game(developer=dev, title='t3', tags='lots    ,  of    , space\t')
+        self.g4 = Game(developer=dev, title='t4', tags='fun,game,cheap')
+        self.g5 = Game(developer=dev, title='t5', tags='fun')
+        
+    def test_get_tags(self):
+        self.assertEqual(self.g1.get_tags(), ['fun', 'game', 'buy', 'please'])
+        
+    def test_get_tags_unsaved_spaces(self):
+        self.assertEqual(self.g3.get_tags(), ['lots    ', '  of    ', ' space\t'])
+        
+    def test_get_tags_saved_spaces(self):
+        self.g3.save()
+        self.assertEqual(self.g3.get_tags(), ['lots', 'of', 'space'])
+        
+    def test_related_games(self):
+        
+        # don't worry: will save to test DB only (which will be deleted after test suite is done)
+        self.g1.save()
+        self.g2.save()
+        self.g3.save()
+        self.g4.save()
+        self.g5.save()
+        self.assertEqual(self.g2.get_related_games(), [(self.g1, 0.4), (self.g4, 1.0), (self.g5, 1/3)])
+
 class TestUsers(TestCase):
     fixtures = ['groups.json', 'users.json']
     

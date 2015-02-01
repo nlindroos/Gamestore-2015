@@ -22,13 +22,36 @@ class Game(models.Model):
     img_url = models.URLField(null=True, blank=True, default="store/images/russia.jpeg")
     
     def get_tags(self):
-        return [x.strip() for x in self.tags.split(',')] # FIXME: maybe could be better to strip these when saved?
+        return [x for x in self.tags.split(',')]
+    
+    def save(self, *args, **kwargs):
+        """
+        Override save() method.
+        Strips tags of all whitespace and sets them to lower case before saving them.
+        """
+        self.tags = ','.join([x.strip().lower() for x in self.tags.split(',')])
+        super(Game, self).save(*args, **kwargs)
         
-    def get_tags_formatted(self):
+        
+    def get_related_games(self):
         """
-        Returns a string with each tag on a new line
+        Returns a list of tuples containing:
+            [0]: a game object that has at least one tag in common with this game
+            [1]: a number (0..1) indicating how well the tags of both games match each other.
         """
-        return self.tags.replace(',', '\n')
+        t1 = set(self.get_tags())
+        if not t1:
+            return []
+        games = Game.objects.exclude(pk=self.pk)
+        related = []
+        for g in games:
+            t2 = set(g.get_tags())
+            isect = t1 & t2;
+            union = t1 | t2;
+            if isect:
+                related.append((g, len(isect)/len(union)))
+        return related
+        
 
 class Highscore(models.Model):
     def __str__(self):
