@@ -8,6 +8,7 @@ function search_by_name(name) {
          row.hide();
          $(this).hide();
       }
+      // Can only show games hidden by search_by_name() (a.k.a. this particular function).
       else if (!row.hasClass("low") && !row.hasClass("high") && !row.hasClass("tag")) {
          row.removeClass("name");
          row.show();
