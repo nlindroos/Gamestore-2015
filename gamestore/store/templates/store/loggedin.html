@@ -1,6 +1,9 @@
 {% extends "store/base.html" %}
 
 {% block content %}
-    <h2>Hi! You are logged in.</h2>
-    <p>Click <a href="{% url 'logout' %}">here</a> to log out.</p>
+    <div class="container">
+        <h2>You are logged in.</h2>
+        <p>Click here to log out:</p>
+        <a class="btn btn-default" role="button" href="{% url 'logout' %}">Log out</a>
+    </div>
 {% endblock %}
