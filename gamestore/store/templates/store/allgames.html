@@ -11,31 +11,33 @@
 {% block content %}
     <div class="container">
         <h1>Games</h1>
-        <h3 class="header">Filter results</h3>
-        <div class="form-group">
-            <div class="input-group">
-                <span class="input-group-addon" id="name_filter_addon">Title</span>
-                <input id="name_filter" type="text" class="form-control" placeholder="Name of game" aria-describedby="name_filter_addon">
+        <h3 class="style-header">Filter results</h3>
+        <form id="js-search-form">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon" id="name_filter_addon">Title</span>
+                    <input id="name_filter" type="text" class="form-control" placeholder="Name of game" aria-describedby="name_filter_addon">
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <div class="input-group">
-                <span class="input-group-addon" id="tag_filter_addon">Tags</span>
-                <input id="tag_filter" type="text" class="form-control" placeholder="Tags separated by spaces" aria-describedby="tag_filter_addon">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon" id="tag_filter_addon">Tags</span>
+                    <input id="tag_filter" type="text" class="form-control" placeholder="Tags separated by spaces" aria-describedby="tag_filter_addon">
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <div class="input-group">
-                <span class="input-group-addon" id="price_filter_addon1">Price</span>
-                <input id="price_filter_low" type="text" class="form-control" placeholder="0 €" aria-describedby="price_filter_addon1">
-                <span class="input-group-addon" id="price_filter_addon2">to</span>
-                <input id="price_filter_high" type="text" class="form-control" placeholder="unlimited" aria-describedby="price_filter_addon2">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon" id="price_filter_addon1">Price</span>
+                    <input id="price_filter_low" type="number" class="form-control" placeholder="0 €" aria-describedby="price_filter_addon1">
+                    <span class="input-group-addon" id="price_filter_addon2">to</span>
+                    <input id="price_filter_high" type="number" class="form-control" placeholder="unlimited" aria-describedby="price_filter_addon2">
+                </div>
             </div>
-        </div>
+        </form>
     </div>
     <div id="gamelist" class="container">
         {% for g in games %}
-            <h3>{{ g.title }}</h3>
+            <h3 class="js-header">{{ g.title }}</h3>
             <div class="row">
                 <div class="col-md-2">
                     {% if g.img_url %}
@@ -62,13 +64,13 @@
                 <div class="col-md-2">
                 {% if g not in owned %}
                     {% if g.price > 0 %}
-                    <p>{{ g.price }} €</p>
+                    <p class="js-price">{{ g.price }} €</p>
                     <form action="/checkout" method="post">  {% csrf_token %}
                         <input name="game_id" type="hidden" value="{{ g.pk }}">
                         <button type="submit" formaction="/checkout">Buy now</button>
                     </form>
                     {% else %}
-                    <p>FREE!</p>
+                    <p class="js-price">FREE!</p>
                     <form action="/checkout" method="post">  {% csrf_token %}
                         <input name="game_id" type="hidden" value="{{ g.pk }}">
                         <button type="submit" formaction="/checkout">Add to my games</button>
