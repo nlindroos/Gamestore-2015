@@ -80,7 +80,7 @@ def developers_only(view):
     return decorator
 
 
-def denied_view(request, reason):
+def denied_view(request, reason="Access denied"):
     """
     Shown whenever access is not allowed.
     Response code is always 403 (Permission denied).
