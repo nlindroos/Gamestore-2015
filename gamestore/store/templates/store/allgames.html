@@ -37,11 +37,11 @@
     </div>
     <div id="gamelist" class="container">
         {% for g in games %}
-            <h3 class="js-header">{{ g.title }}</h3>
+            <h3 class="js-header"><a href="/allgames/{{ g.pk }}">{{ g.title }}</a></h3>
             <div class="row">
                 <div class="col-md-2">
                     {% if g.img_url %}
-                        <img src={{ g.img_url }} class="img-thumbnail" alt="picture of game"></img>
+                        <img src="{{ g.img_url }}" class="img-thumbnail" alt="picture of game"></img>
                     {% else %}
                         <img src="{% static 'store/images/russia.jpeg' %}" class="img-thumbnail" alt="picture of game"></img>
                     {% endif %}

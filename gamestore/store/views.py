@@ -182,7 +182,7 @@ def game_detailed(request, game):
     except:
         raise Http404('Invalid Game ID')
 
-    related_games = sorted(g.get_related_games(), key=lambda x: x[1])[:5] # take the 5 most related games
+    related_games = sorted(g.get_related_games(), key=lambda x: -x[1])[:5] # take the 5 most related games
 
     if request.user.is_authenticated() and is_player(request.user):
         # players may own games: don't let them buy the same game twice:
@@ -322,6 +322,7 @@ def dev_game_edit_view(request, game):
             g.url = f.cleaned_data['url']
             g.price = f.cleaned_data['price']
             g.description = f.cleaned_data['description']
+            g.img_url=f.cleaned_data.get('img_url', None)
             # NOTE: tags is a list input (name="tags[]")
             g.tags = ",".join(request.POST.getlist('tags[]'))
             g.save()
