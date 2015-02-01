@@ -7,6 +7,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count, Min, Sum, Avg
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
+from django.core.signing import Signer
 
 from store.forms import MyRegistrationForm, GameForm
 from store.models import *
@@ -137,7 +138,9 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             user.is_active = False  # Disables user account until it is validated by e-mail
-            send_mail('Confirm registration', 'Go to this URL to confirm your account: http://localhost:8000/signup_success/'+str(user.pk), 'admin@gamestore.com',
+            signer = Signer()
+            signed_value = signer.sign(user.pk) # signer used to make the individual URL harder to guess
+            send_mail('Confirm registration', 'Go to this URL to confirm your account: http://localhost:8000/signup_success/'+str(signed_value), 'admin@gamestore.com',
     [user.email], fail_silently=False)
             return HttpResponse("Confirm your registration via e-mail. Please check your e-mail inbox!")
 
@@ -146,8 +149,10 @@ def signup_view(request):
     args['form'] = MyRegistrationForm()
     return render_to_response('store/signup.html', args)
 
-def signup_success_view(request, user_pk):
+def signup_success_view(request, signed_value):
     try:
+        signer = Signer()
+        user_pk = signer.unsign(signed_value)
         user = User.objects.get(pk=user_pk)
         user.is_active = True
         return render_to_response('store/signup_success.html')
@@ -177,12 +182,14 @@ def game_detailed(request, game):
     except:
         raise Http404('Invalid Game ID')
 
+    related_games = sorted(g.get_related_games(), key=lambda x: -x[1])[:5] # take the 5 most related games
+
     if request.user.is_authenticated() and is_player(request.user):
         # players may own games: don't let them buy the same game twice:
         owned_games = list(x.game for x in request.user.ownedgame_set.all())       
-        return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : owned_games})
+        return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : owned_games, 'related' : related_games})
     # default behaviour for devs and unregistered users:
-    return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : set()})
+    return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : set(), 'related' : related_games})
  
 @login_only
 @players_only
@@ -315,6 +322,7 @@ def dev_game_edit_view(request, game):
             g.url = f.cleaned_data['url']
             g.price = f.cleaned_data['price']
             g.description = f.cleaned_data['description']
+            g.img_url=f.cleaned_data.get('img_url', None)
             # NOTE: tags is a list input (name="tags[]")
             g.tags = ",".join(request.POST.getlist('tags[]'))
             g.save()
