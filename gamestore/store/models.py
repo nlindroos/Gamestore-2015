@@ -47,6 +47,7 @@ class OwnedGame(models.Model):
     player = models.ForeignKey(User, limit_choices_to={'groups__name': "Players"})
     game = models.ForeignKey(Game)
     game_state = models.TextField() # Should this be TextField?
+    license_active = models.BooleanField(default=False)
 
 
 class Purchase(models.Model):
@@ -56,4 +57,5 @@ class Purchase(models.Model):
     game = models.ForeignKey(Game)
     date_time = models.DateTimeField(auto_now_add=True)
     fee = models.DecimalField(max_digits=5, decimal_places=2, null=False, default=0.00)
+    payment_confirmed = models.BooleanField(default=False)
 
