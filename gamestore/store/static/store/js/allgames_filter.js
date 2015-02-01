@@ -2,8 +2,7 @@ function search_by_name(name) {
    "use strict";
    var games = $("#gamelist h3").map(function() {
       // If not found
-      if ($(this).html().toLowerCase().indexOf(name) === -1) {
-         console.log($(this).next().html());
+      if ($(this).html().toLowerCase().indexOf(name.toLowerCase()) === -1) {
          $(this).next().hide();
          $(this).hide();
       }
@@ -135,7 +134,4 @@ $(document).ready(function() {
    $("#price_filter_high").on('input', function() {
       limit_by_price($(this).val(), false);
    });
-});
-
-$(document).ready(function() {
 });
