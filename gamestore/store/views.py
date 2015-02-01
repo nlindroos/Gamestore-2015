@@ -182,12 +182,14 @@ def game_detailed(request, game):
     except:
         raise Http404('Invalid Game ID')
 
+    related_games = sorted(g.get_related_games(), key=lambda x: x[1])[:5] # take the 5 most related games
+
     if request.user.is_authenticated() and is_player(request.user):
         # players may own games: don't let them buy the same game twice:
         owned_games = list(x.game for x in request.user.ownedgame_set.all())       
-        return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : owned_games})
+        return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : owned_games, 'related' : related_games})
     # default behaviour for devs and unregistered users:
-    return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : set()})
+    return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : set(), 'related' : related_games})
  
 @login_only
 @players_only

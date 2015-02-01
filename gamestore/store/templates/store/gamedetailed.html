@@ -46,6 +46,16 @@
             <div class="col-sm-6">Own highscores</div>
             <div class="col-sm-6">Global highscores</div> 
         </div>
+        {% if related %}
+        <div class="row">
+            <h3>Related Games</h3>
+            <ul>
+            {% for g in related %}
+                <li><a href="/allgames/{{ g.0.pk }}">{{ g.0.title }}</a><span> Match: {{ g.1 }}</span></li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
 
 {% endblock %}
