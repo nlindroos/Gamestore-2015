@@ -224,6 +224,7 @@ def play_view(request, game):
 def checkout_view(request):
     """
     View for buying games using the niksula payment service.
+    View creates new Purchase objects, calculates checksums and other variables required by the niskula payment service.
     
     User must be logged in as a player who does not own the game being purchased.
     """
@@ -254,6 +255,11 @@ def checkout_view(request):
 @login_only
 @players_only
 def cancel_order_view(request, pid, ref=1, checksum=1):
+    """
+    User is lead here if the buying process is cancelled at any point.
+    
+    This view deletes the created Purchase object.
+    """
     p = Purchase.objects.get(pk=pid)
     p.delete()
     return HttpResponseRedirect('/allgames')
@@ -261,6 +267,11 @@ def cancel_order_view(request, pid, ref=1, checksum=1):
 @login_only
 @players_only
 def confirm_order_view(request, pid, ref=1, checksum=1):
+    """
+    User is lead here if the buying process is successful.
+    
+    This view sets the Purchase as confirmed and adds an OwnedGame object to the authenticated user.
+    """
     p = Purchase.objects.get(pk=pid)
     p.payment_confirmed = True
     o = OwnedGame(player=request.user, game=p.game, game_state="")
