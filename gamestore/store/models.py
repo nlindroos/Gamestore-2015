@@ -47,7 +47,6 @@ class OwnedGame(models.Model):
     player = models.ForeignKey(User, limit_choices_to={'groups__name': "Players"})
     game = models.ForeignKey(Game)
     game_state = models.TextField() # Should this be TextField?
-    license_active = models.BooleanField(default=False)
 
 
 class Purchase(models.Model):

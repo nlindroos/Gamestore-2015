@@ -60,7 +60,6 @@
       "player": 3,
       "game": 4,
       "game_state": "",
-      "license_active": True 
     }
   },
   {
@@ -70,7 +69,6 @@
       "player": 1,
       "game": 2,
       "game_state": "",
-      "license_active": True 
     }
   },
   {
