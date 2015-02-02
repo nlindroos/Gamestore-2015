@@ -182,7 +182,8 @@ def game_detailed(request, game):
     except:
         raise Http404('Invalid Game ID')
 
-    related_games = sorted(g.get_related_games(), key=lambda x: -x[1])[:5] # take the 5 most related games
+    # related games: take the 5 most related games, sorted by "relation coefficient"
+    related_games = sorted(g.get_related_games(), key=lambda x: -x[1])[:5] 
     global_scores = Highscore.objects.filter(game=game)
 
     if request.user.is_authenticated() and is_player(request.user):

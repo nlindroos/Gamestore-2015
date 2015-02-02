@@ -1,14 +1,21 @@
 {% extends 'store/base.html' %}
 {% load staticfiles %}
 
+{% block head %}
+    <script src="{% static 'store/js/gamedetailed.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 
     <div class="container">
         <h3>{{ g.title }}</h3>
-        <div class="row">
-            <div class="col-sm-3">
+        <div class="row jumbotron">
+            <div class="col-sm-4">
+                {% if g.img_url %}
+                <img src="{{ g.img_url }}" alt="picture of game"></img>
+                {% else %}
                 <img src="{% static 'store/images/russia.jpeg' %}" alt="picture of game"></img>
+                {% endif %}
             </div>
             <div class="col-sm-5">
                 {% if g.description %}
@@ -16,17 +23,15 @@
                 {% else %}
                     <p>No description available.</p>
                 {% endif %}
-            </div>
-            <div class="col-sm-2">
-                <span>Tags: </span>
+                <h4>Tags</h4>
                 <ul>
                 {% for t in g.get_tags %}
                     <li>{{ t }}</li>
                 {% endfor %}
                 </ul>
             </div>
-            <div class="col-sm-2">
-            {% if g not in owned %}
+            <div class="col-sm-3">
+            {% if not owned %}
                 {% if g.price > 0 %}
                 <p>{{ g.price }} €</p>
                 <form action="/checkout" method="post">  {% csrf_token %}
@@ -46,65 +51,93 @@
                 {% endif %}
             {% else %}
                 <p>In my games</p>
+                <a href="{% url 'play' g.pk %}"><button>Play now!</button></a>
             {% endif %}
             </div>
         </div>
-        {% if related %}
-        <div class="row">
-            <h3>Related Games</h3>
-            <ul>
-            {% for g in related %}
-                <li><a href="/allgames/{{ g.0.pk }}">{{ g.0.title }}</a><span> Match: {{ g.1 }}</span></li>
-            {% endfor %}
-            </ul>
-        </div>
-        {% else %}
-        <div class="row">
-            <p>Wow, this game is unique! There are no related games!</p>
-            <p>(if you are the developer of this game, please consider adding some tags)</p>
-        </div>
-        {% endif %}
-        <div class="row">
-            {% if owned %}
-            <div class="col-sm-6 table-responsive">
-                <h4>Your highscores</h4>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Score</th>
-                            <th>Date</th>
-                        </tr>
-                        {% for s in own_scores %}
-                        <tr>
-                            <td>{{ s.score }}</td>
-                            <td>{{ s.date_time }}</td>
-                        </tr>
-                        {% endfor %}
-                    </thead>
-                </table>
+        <ul class="nav nav-tabs" role="tablist">
+          <li id="highscore_tab" role="presentation" class="active"><a href="#highscores" aria-controls="highscores" role="tab" data-toggle="tab">Highscores</a></li>
+          <li id="related_tab" role="presentation" class=""><a href="#related_games" aria-controls="related_games" role="tab" data-toggle="tab">Related games</a></li>
+          <li id="others_by_dev_tab" role="presentation" class=""><a href="#others_by_dev" aria-controls="others_by_dev" role="tab" data-toggle="tab">More games by {{ g.developer.username }}</a></li>
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active row" id="highscores">
+                {% if owned %}
+                <div class="col-sm-5 table-responsive">
+                    <h4>Your highscores</h4>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Score</th>
+                                <th>Date</th>
+                            </tr>
+                            {% for s in own_scores %}
+                            <tr>
+                                <td>{{ s.score }}</td>
+                                <td>{{ s.date_time }}</td>
+                            </tr>
+                            {% endfor %}
+                        </thead>
+                    </table>
+                    <button id="find_my_score">Find in global scores</button>
+                </div>
+                <div class="col-sm-7 table-responsive">
+                {% else %}
+                <div class="col-sm-12 table-responsive">
+                {% endif %}
+                    <h4>Global highscores</h4>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Score</th>
+                                <th>Date</th>
+                            </tr>
+                            {% for s in global_scores %}
+                            {% if s.player == request.user %}
+                            <tr id="my_score">
+                                <td style="background-color:Beige">{{ s.player.username }}</td>
+                                <td style="background-color:Beige">{{ s.score }}</td>
+                                <td style="background-color:Beige">{{ s.date_time }}</td>
+                            {% else %}
+                            <tr>
+                                <td>{{ s.player.username }}</td>
+                                <td>{{ s.score }}</td>
+                                <td>{{ s.date_time }}</td>
+                            {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </thead>
+                    </table>
+                </div> 
             </div>
-            <div class="col-sm-6 table-responsive">
-            {% else %}
-            <div class="col-sm-12 table-responsive">
-            {% endif %}
-                <h4>Global highscores</h4>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Player</th>
-                            <th>Score</th>
-                            <th>Date</th>
-                        </tr>
-                        {% for s in global_scores %}
-                        <tr>
-                            <td>{{ s.player.username }}</td>
-                            <td>{{ s.score }}</td>
-                            <td>{{ s.date_time }}</td>
-                        </tr>
-                        {% endfor %}
-                    </thead>
-                </table>
-            </div> 
+            <div role="tabpanel" class="tab-pane row" id="related_games">
+                {% if related %}
+                <div class="col-sm-12">
+                    <h4>Related Games</h4>
+                    <ul>
+                    {% for r in related %}
+                        <li><a href="/allgames/{{ r.0.pk }}">{{ r.0.title }}</a><span> Match: {{ r.1 }}</span></li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% else %}
+                <p>Wow, this game is unique! There are no related games!</p>
+                <p>(if you are the developer of this game, please consider adding some tags)</p>
+                {% endif %}
+            </div>
+            <div role="tabpanel" class="tab-pane row" id="others_by_dev">
+                <div class="col-sm-12">
+                    <h4>Other games by {{ g.developer.username }}</h4>
+                    <ul>
+                    {% for og in g.developer.game_set.all %}
+                        {% if og != g %}
+                        <li><a href="/allgames/{{ og.pk }}">{{ og.title }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -30,7 +30,12 @@ class Game(models.Model):
         Override save() method.
         Strips tags of all whitespace and sets them to lower case before saving them.
         """
-        self.tags = ','.join([re.sub(r'\s+', '_', x.strip().lower()) for x in self.tags.split(',')])
+        # remove leading and trailing whitespace:
+        tags = [x.strip() for x in self.tags.split(',')] 
+        # exclude empty tags, remove duplicates, convert to lower case and replace whitspace with underscores:
+        tags = set(re.sub(r'(\s|_)+', '_', x.lower()) for x in tags if x)
+        # limit to max 10 tags and rejoin:
+        self.tags = ','.join(sorted(tags)[:10])
         super(Game, self).save(*args, **kwargs)
         
         

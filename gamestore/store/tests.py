@@ -24,27 +24,34 @@ class TestGameModel(TestCase):
         dev = User.objects.get(pk=4)
         self.g1 = Game(developer=dev, title='t1', tags='fun,game,buy,please')
         self.g2 = Game(developer=dev, title='t2', tags='fun,game,cheap')
-        self.g3 = Game(developer=dev, title='t3', tags='a lot    ,  of    , extra  space\t')
+        self.g3 = Game(developer=dev, title='t3', tags='a lOt    ,  of    , extra  space\t, like__rEalLy, a_ _lot')
         self.g4 = Game(developer=dev, title='t4', tags='fun,game,cheap')
         self.g5 = Game(developer=dev, title='t5', tags='fun')
         self.g6 = Game(developer=dev, title='t6', tags='')
+        self.g8 = Game(developer=dev, title='t8', tags='1,2,3,4,9,6,7,8,9,10,9,9,11')
         
     def test_get_tags(self):
         self.assertEqual(self.g1.get_tags(), ['fun', 'game', 'buy', 'please'])
         
     def test_get_tags_unsaved_spaces(self):
-        self.assertEqual(self.g3.get_tags(), ['a lot    ', '  of    ', ' extra  space\t'])
+        self.assertEqual(self.g3.get_tags(), ['a lOt    ', '  of    ', ' extra  space\t', ' like__rEalLy', ' a_ _lot'])
         
-    def test_get_tags_saved_spaces(self):
+    def test_saved_tags(self):
         self.g3.save()
-        self.assertEqual(self.g3.get_tags(), ['a_lot', 'of', 'extra_space'])
+        self.g8.save()
+        # leading and trailing spaces should be removed
+        # upperase -> lower case
+        # any amount of spaces or underscore should be replaced by one underscore
+        # no duplicates (after all modifications listed above)
+        # tags sorted alphabetically
+        self.assertEqual(self.g3.get_tags(), ['a_lot', 'extra_space', 'like_really', 'of'])
+        self.assertEqual(self.g8.get_tags(), ['1', '10', '11', '2', '3', '4', '6', '7', '8', '9'])
         
     def test_related_games(self):
         
         # don't worry: will save to test DB only (which will be deleted after test suite is done)
         self.g1.save()
         self.g2.save()
-        self.g3.save()
         self.g4.save()
         self.g5.save()
         self.g6.save()
