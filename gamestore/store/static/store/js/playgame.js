@@ -101,10 +101,10 @@ $(document).ready( function() {
                 "data" : {
                     "score" : JSON.stringify(event.data.score)
                 }
-            }).done(function() {
+            }).done(function(data) {
                 $("#gameframe").get(0).contentWindow.postMessage({
                    "messageType" : "MESSAGE",
-                    "message" : "Game score saved succesfully!"
+                    "message" : data//"Game score saved succesfully!"
                 }, event.origin);
             }).fail(function() {
                 $("#gameframe").get(0).contentWindow.postMessage({

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+import re
 
 # NOTE: Django sets variables names from e.g. player to player_id in the db when ForeignKey is used, but we only need to use player to refer to this field.
 
@@ -29,7 +30,7 @@ class Game(models.Model):
         Override save() method.
         Strips tags of all whitespace and sets them to lower case before saving them.
         """
-        self.tags = ','.join([x.strip().lower() for x in self.tags.split(',')])
+        self.tags = ','.join([re.sub(r'\s+', '_', x.strip().lower()) for x in self.tags.split(',')])
         super(Game, self).save(*args, **kwargs)
         
         
@@ -63,6 +64,7 @@ class Highscore(models.Model):
     
     class Meta:
         ordering = ['game', '-score', 'date_time', 'player']
+        unique_together = (("player", "game"),)
 
 class OwnedGame(models.Model):
     def __str__(self):

@@ -4,7 +4,7 @@ from django.contrib import auth
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
-from django.db.models import Count, Min, Sum, Avg
+from django.db.models import Count, Min, Max, Sum, Avg
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
 from django.core.signing import Signer
@@ -183,13 +183,14 @@ def game_detailed(request, game):
         raise Http404('Invalid Game ID')
 
     related_games = sorted(g.get_related_games(), key=lambda x: -x[1])[:5] # take the 5 most related games
+    global_scores = Highscore.objects.filter(game=game)
 
     if request.user.is_authenticated() and is_player(request.user):
-        # players may own games: don't let them buy the same game twice:
-        owned_games = list(x.game for x in request.user.ownedgame_set.all())       
-        return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : owned_games, 'related' : related_games})
+        owned = True if OwnedGame.objects.filter(player=request.user.pk, game=game) else False
+        own_scores = Highscore.objects.filter(player=request.user.pk, game=game) 
+        return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : owned, 'related' : related_games, 'own_scores' : own_scores, 'global_scores' : global_scores})
     # default behaviour for devs and unregistered users:
-    return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : set(), 'related' : related_games})
+    return render(request, 'store/gamedetailed.html', {'g' : g, 'owned' : set(), 'related' : related_games, 'global_scores' : global_scores})
  
 @login_only
 @players_only
@@ -427,13 +428,25 @@ def gamescore_ajax_view(request, game):
         # no such game or player doesn't own the game
         raise Http404('')
     if request.method == "POST" and request.is_ajax():
+        global_high = Highscore.objects.filter(game=game).aggregate(max_score=Max('score')).get('max_score', None)
+        new_score = request.POST['score']
         try:
-            score = Highscore(game=Game.objects.get(pk=game), player=request.user, score=request.POST['score'])
+            # check for previous score:
+            score = Highscore.objects.get(game=game, player=request.user)
         except:
-            raise Http404('')
-        else:
+            # no previous scores: make new one:
+            score = Highscore(game=Game.objects.get(pk=game), player=request.user, score=new_score)
             score.save()
-            return HttpResponse("Highscore saved successfully!", content_type="text/plain")
+        else:
+            # try to overwrite previous score
+            if float(new_score) > float(score.score):
+                score.score = new_score
+                score.save()
+            else:
+                return HttpResponse("Score: {} (your highscore is {})".format(str(new_score), str(score.score)), content_type="text/plain")
+        if global_high is None or (float(new_score) > float(global_high)):
+            return HttpResponse("New world record: {}!".format(str(new_score)), content_type="text/plain")
+        return HttpResponse("New personal highscore: {}!".format(str(new_score)), content_type="text/plain")
     else:
         raise Http404('')
         

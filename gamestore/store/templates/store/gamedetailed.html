@@ -42,10 +42,6 @@
             {% endif %}
             </div>
         </div>
-        <div class="row">
-            <div class="col-sm-6">Own highscores</div>
-            <div class="col-sm-6">Global highscores</div> 
-        </div>
         {% if related %}
         <div class="row">
             <h3>Related Games</h3>
@@ -61,6 +57,48 @@
             <p>(if you are the developer of this game, please consider adding some tags)</p>
         </div>
         {% endif %}
+        <div class="row">
+            {% if owned %}
+            <div class="col-sm-6 table-responsive">
+                <h4>Your highscores</h4>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Score</th>
+                            <th>Date</th>
+                        </tr>
+                        {% for s in own_scores %}
+                        <tr>
+                            <td>{{ s.score }}</td>
+                            <td>{{ s.date_time }}</td>
+                        </tr>
+                        {% endfor %}
+                    </thead>
+                </table>
+            </div>
+            <div class="col-sm-6 table-responsive">
+            {% else %}
+            <div class="col-sm-12 table-responsive">
+            {% endif %}
+                <h4>Global highscores</h4>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Score</th>
+                            <th>Date</th>
+                        </tr>
+                        {% for s in global_scores %}
+                        <tr>
+                            <td>{{ s.player.username }}</td>
+                            <td>{{ s.score }}</td>
+                            <td>{{ s.date_time }}</td>
+                        </tr>
+                        {% endfor %}
+                    </thead>
+                </table>
+            </div> 
+        </div>
     </div>
 
 {% endblock %}

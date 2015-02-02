@@ -24,19 +24,20 @@ class TestGameModel(TestCase):
         dev = User.objects.get(pk=4)
         self.g1 = Game(developer=dev, title='t1', tags='fun,game,buy,please')
         self.g2 = Game(developer=dev, title='t2', tags='fun,game,cheap')
-        self.g3 = Game(developer=dev, title='t3', tags='lots    ,  of    , space\t')
+        self.g3 = Game(developer=dev, title='t3', tags='a lot    ,  of    , extra  space\t')
         self.g4 = Game(developer=dev, title='t4', tags='fun,game,cheap')
         self.g5 = Game(developer=dev, title='t5', tags='fun')
+        self.g6 = Game(developer=dev, title='t6', tags='')
         
     def test_get_tags(self):
         self.assertEqual(self.g1.get_tags(), ['fun', 'game', 'buy', 'please'])
         
     def test_get_tags_unsaved_spaces(self):
-        self.assertEqual(self.g3.get_tags(), ['lots    ', '  of    ', ' space\t'])
+        self.assertEqual(self.g3.get_tags(), ['a lot    ', '  of    ', ' extra  space\t'])
         
     def test_get_tags_saved_spaces(self):
         self.g3.save()
-        self.assertEqual(self.g3.get_tags(), ['lots', 'of', 'space'])
+        self.assertEqual(self.g3.get_tags(), ['a_lot', 'of', 'extra_space'])
         
     def test_related_games(self):
         
@@ -46,7 +47,9 @@ class TestGameModel(TestCase):
         self.g3.save()
         self.g4.save()
         self.g5.save()
+        self.g6.save()
         self.assertEqual(self.g2.get_related_games(), [(self.g1, 0.4), (self.g4, 1.0), (self.g5, 1/3)])
+        self.assertEqual(self.g6.get_related_games(), [])
 
 class TestUsers(TestCase):
     fixtures = ['groups.json', 'users.json']
