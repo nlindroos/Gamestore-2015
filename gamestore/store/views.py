@@ -80,7 +80,7 @@ def developers_only(view):
     return decorator
 
 
-def denied_view(request, reason):
+def denied_view(request, reason="Access denied"):
     """
     Shown whenever access is not allowed.
     Response code is always 403 (Permission denied).
@@ -232,7 +232,7 @@ def play_view(request, game):
 def checkout_view(request):
     """
     View for buying games using the niksula payment service.
-    View creates new Purchase objects, calculates checksums and other variables required by the niskula payment service.
+    View creates new Purchase objects, calculates checksums and other variables required by the niksula payment service.
     
     User must be logged in as a player who does not own the game being purchased.
     """

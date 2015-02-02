@@ -31,11 +31,18 @@
                 <p>{{ g.price }} €</p>
                 <form action="/checkout" method="post">  {% csrf_token %}
                     <input name="game_id" type="hidden" value="{{ g.pk }}">
-                    <button type="submit" formaction="/checkout">Buy now</button>
+                    {% if "Players" == request.user.groups.all.0.name %}
+                        <button type="submit" formaction="/checkout">Buy now</button>
+                    {% endif %}
                 </form>
                 {% else %}
                 <p>FREE!</p>
-                <button>Add to my games</button>
+                <form action="/checkout" method="post">  {% csrf_token %}
+                        <input name="game_id" type="hidden" value="{{ g.pk }}">
+                        {% if "Players" == request.user.groups.all.0.name %}
+                            <button type="submit" formaction="/checkout">Add to my games</button>
+                        {% endif %}
+                </form>
                 {% endif %}
             {% else %}
                 <p>In my games</p>
