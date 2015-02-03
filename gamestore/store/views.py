@@ -450,4 +450,18 @@ def gamescore_ajax_view(request, game):
         return HttpResponse("New personal highscore: {}!".format(str(new_score)), content_type="text/plain")
     else:
         raise Http404('')
-        
+
+
+def home(request):
+    return render(request, 'store/home.html')
+
+
+
+
+
+
+
+
+
+
+

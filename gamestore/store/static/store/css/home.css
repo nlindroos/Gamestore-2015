@@ -1,0 +1,91 @@
+
+/* Custom font used in header */
+@font-face {
+    font-family: 'lobster';
+    src: url('../fonts/lobster-two/LobsterTwo-Bold.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+h1.text-center {
+    font-family: 'lobster';
+    font-size: 84px;
+}
+
+@media (max-width: 992px) {
+    h1.text-center {
+        font-size: 64px;
+    }
+}
+
+/*
+#carousel {
+    padding-bottom: 25px;
+    border-bottom: 1px solid #eee;
+}*/
+
+#carouselGroup {   
+    /*padding-bottom: 25px;
+    border-bottom: 10px solid #000;
+    background-color: #F2F2F2;
+    z-index: 2;*/
+    max-width: 100%;
+    height: auto;
+}
+
+.carousel {
+    border-right: 1px solid #EEE;
+    max-width: 100%;
+    height: auto;
+}
+
+#firstCarousel {
+    position: absolute;
+    left: 200px;
+    z-index: 5;
+}
+
+#secondCarousel {
+    position: absolute;
+    left: 30%;
+    z-index: 4;
+    -webkit-filter: blur(3px);
+    -moz-filter: blur(3px);
+    -o-filter: blur(3px);
+    -ms-filter: blur(3px);
+    filter: blur(3px);
+}
+
+#thirdCarousel {
+    position: absolute;
+    left: 50%;
+    z-index: 3;
+    -webkit-filter: blur(5px);
+    -moz-filter: blur(5px);
+    -o-filter: blur(5px);
+    -ms-filter: blur(5px);
+    filter: blur(5px);
+}
+@media (max-width: 992px) {
+    #firstCarousel {
+        left: 100px;
+    }
+    #secondCarousel {
+        left: 20%;
+    }
+}
+
+@media (max-width: 767px) {
+    #firstCarousel {
+        left: 0px;
+    }
+
+    #carouselGroup, .carousel, img {
+        max-height: 400px;
+    }
+
+    #secondCarousel {
+        left: 10%;
+    }
+}
+

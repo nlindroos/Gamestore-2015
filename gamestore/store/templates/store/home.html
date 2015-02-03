@@ -1,0 +1,54 @@
+{% extends "store/base.html" %}
+{% load staticfiles %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+    <h1 class="text-center page-header">Gamestore 2015</h1>
+    <div id="carouselGroup">
+        <div id="firstCarousel" class="carousel slide" data-ride="carousel" data-pause="false">
+            <div class="carousel-inner" role="listbox">
+                <div class="item active">
+                    <img class="first img-responsive" src="http://s6.postimg.org/nwn8bpou9/johan_pointing.jpg" alt="Having fun coding">
+                </div>
+                <div class="item">
+                    <img class="first img-responsive" src="http://s6.postimg.org/kd5vznbi9/confused_martin.jpg" alt="Martin confused">
+                </div>
+                <div class="item">
+                    <img class="first img-responsive" src="http://s6.postimg.org/qs4wwbi81/UI_design.jpg" alt="UI design in progress">
+                </div>
+            </div>
+        </div>
+
+        <div id="secondCarousel" class="carousel slide" data-ride="carousel" data-pause="false">
+            <div class="carousel-inner" role="listbox">
+                <div class="item">
+                    <img class="second img-responsive" src="http://s6.postimg.org/nwn8bpou9/johan_pointing.jpg" alt="Having fun coding">
+                </div>
+                <div class="item active">
+                    <img class="second img-responsive" src="http://s6.postimg.org/kd5vznbi9/confused_martin.jpg" alt="Martin confused">
+                </div>
+                <div class="item">
+                    <img class="second img-responsive" src="http://s6.postimg.org/qs4wwbi81/UI_design.jpg" alt="UI design in progress">
+                </div>
+            </div>
+        </div>
+
+        <div id="thirdCarousel" class="carousel slide" data-ride="carousel" data-pause="false">
+            <div class="carousel-inner" role="listbox">
+                <div class="item">
+                    <img src="http://s6.postimg.org/nwn8bpou9/johan_pointing.jpg" alt="Having fun coding">
+                </div>
+                <div class="item">
+                    <img src="http://s6.postimg.org/kd5vznbi9/confused_martin.jpg" alt="Martin confused">
+                </div>
+                <div class="item active">
+                    <img src="http://s6.postimg.org/qs4wwbi81/UI_design.jpg" alt="UI design in progress">
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
