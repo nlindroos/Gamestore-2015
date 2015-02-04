@@ -18,15 +18,17 @@
         <div class="container">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <!-- For screen readers -->
                     <span class="sr-only">Toggle navigation</span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a href="{% url 'allgames' %}" class="navbar-brand">All games</a>
+                <a href="{% url 'home' %}" class="navbar-brand"><span class="glyphicon glyphicon-home"></span>Home</a>
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav navbar-right">
+                    <li><a href="{% url 'allgames' %}">All games</a></li>
                     {% if request.user.is_authenticated %}
                     <!-- If the user is a Player -->
                     {% if "Players" == request.user.groups.all.0.name  %}
