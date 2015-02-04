@@ -4,8 +4,9 @@ from django.contrib.auth.models import User, Group, AnonymousUser
 from store.models import *
 from store.views import *
 from store.forms import *
+from store.api.views import *
 from django.http import HttpResponse, Http404, HttpResponseRedirect
-
+import json
 
 
 class DummyObject(object):
@@ -339,4 +340,156 @@ class TestDevView(TestCase):
     def test_decorators(self):
         self.assertEqual(developer_view.login_only, True)
         self.assertEqual(developer_view.developers_only, True)
+        
+
+
+
+
+        
+class TestApi(TestCase):
+    fixtures = ['groups.json', 'users.json']
+    
+    def setUp(self):
+        dev = User.objects.get(pk=4)
+        admin = User.objects.get(pk=1)
+        self.g1 = Game(developer=dev, title='Funny Game', tags='fun,game,buy,please')
+        self.g2 = Game(developer=admin, title='very funny game', tags='fun,game,cheap')
+        self.g3 = Game(developer=dev, title='game X', tags='test,gam$e,tag(\d)hack')
+        self.g4 = Game(developer=admin, title='untitled', tags='random_tag,another_tag')
+        self.g5 = Game(developer=dev, title='music quiz - funk edition', tags='funk')
+        self.g6 = Game(developer=admin, title='notags', tags='')
+        self.g7 = Game(developer=dev, title='no meaningful tags', tags='hello,hi,hey')
+        self.g1.save()
+        self.g2.save()
+        self.g3.save()
+        self.g4.save()
+        self.g5.save()
+        self.g6.save()
+        self.g7.save()
+    
+    def test_wildcard_builder(self):
+        query = wildcard_builder('', 'developer__username')
+        games = Game.objects.filter(query)
+        self.assertEqual(len(games), 0)
+        
+        query = wildcard_builder('*', 'developer__username')
+        games = Game.objects.filter(query)
+        self.assertEqual(len(games), 7)
+        
+        query = wildcard_builder('d*', 'developer__username')
+        games = Game.objects.filter(query)
+        self.assertEqual(list(games), [self.g1, self.g3, self.g5, self.g7])
+        
+        query = wildcard_builder('d', 'developer__username')
+        games = Game.objects.filter(query)
+        self.assertEqual(len(games), 0)
+        
+        query = wildcard_builder('*min', 'developer__username')
+        games = Game.objects.filter(query)
+        self.assertEqual(list(games), [self.g2, self.g4, self.g6])
+        
+        query = wildcard_builder('*fun*', 'title')
+        games = Game.objects.filter(query)
+        self.assertEqual(list(games), [self.g1, self.g2, self.g5])
+        
+        query = wildcard_builder('no*tags', 'title')
+        games = Game.objects.filter(query)
+        self.assertEqual(list(games), [self.g6, self.g7])
+        
+    def test_get_expand_parameters(self):
+        str1 = ''
+        self.assertEqual(get_expand_parameters(str1), (False, 0, 0))
+        
+        str1 = 'sales'
+        self.assertEqual(get_expand_parameters(str1), (True, 0, 0))
+        
+        str1 = 'highscores(5)'
+        self.assertEqual(get_expand_parameters(str1), (False, 5, 0))
+        
+        str1 = 'similars(4)'
+        self.assertEqual(get_expand_parameters(str1), (False, 0, 4))
+        
+        str1 = 'sales,highscores(50),similars(7)'
+        self.assertEqual(get_expand_parameters(str1), (True, 50, 7))
+        
+        str1 = 'sales,highscores(oops),similars(-3),highscores(8),similars(3)'
+        self.assertEqual(get_expand_parameters(str1), (True, 8, 3))
+        
+        str1 = 'highscores(1),highscores(2),'
+        self.assertEqual(get_expand_parameters(str1), (False, 1, 0))
+        
+        str1 = 'sales,,,,,highscores(2),,similars(3),'
+        self.assertEqual(get_expand_parameters(str1), (True, 2, 3))
+        
+    def test_filter_by_tags(self):
+        games = [self.g1, self.g2, self.g3, self.g4, self.g5, self.g6, self.g7]
+        
+        tags = []
+        self.assertEqual(filter_by_tags(games, tags, 'any'), [])
+        
+        tags = ['*', 'nosuchtag']
+        self.assertEqual(filter_by_tags(games, tags, 'any'), games)
+        
+        tags = ['*', 'nosuchtag']
+        self.assertEqual(filter_by_tags(games, tags, 'all'), [])
+        
+        tags = ['fu']
+        self.assertEqual(filter_by_tags(games, tags, 'any'), [])
+        
+        tags = ['fun']
+        self.assertEqual(filter_by_tags(games, tags, 'any'), [self.g1, self.g2])
+        
+        tags = ['fun*']
+        self.assertEqual(filter_by_tags(games, tags, 'any'), [self.g1, self.g2, self.g5])
+        
+        tags = ['fun','please']
+        self.assertEqual(filter_by_tags(games, tags, 'any'), [self.g1, self.g2])
+        
+        tags = ['fun','please']
+        self.assertEqual(filter_by_tags(games, tags, 'all'), [self.g1])
+        
+        tags = ['gam$e','tag(\d)hack']
+        self.assertEqual(filter_by_tags(games, tags, 'any'), [self.g3])
+        
+        tags = ['ga*e']
+        self.assertEqual(filter_by_tags(games, tags, 'any'), [self.g1, self.g2, self.g3])
+        
+    def test_api_view(self):
+        client = Client()
+        url = 'http://testserver/game_api/v1/games/title/nosuchtitle'
+        response = client.get(url)
+        jsondata = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(jsondata, {"games": []})
+        
+        url = 'http://testserver/game_api/v1/games/title/nosuchtitle?callback=test'
+        response = client.get(url)
+        self.assertEqual(response.content.decode('utf-8'), 'test({"games": []})')
+        
+        url = 'http://testserver/game_api/v1/games/title/funny+game'
+        response = client.get(url)
+        jsondata = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(jsondata['games']), 1)
+        self.assertEqual(jsondata['games'][0]['title'], "Funny Game")
+        
+        url = 'http://testserver/game_api/v1/games/dev/dev/dev/admin'
+        response = client.get(url)
+        jsondata = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(jsondata['games']), 7)
+        
+        url = 'http://testserver/game_api/v1/games/tagged/fun/tagged/buy'
+        response = client.get(url)
+        jsondata = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(jsondata['games']), 1)
+        self.assertEqual(jsondata['games'][0]['title'], "Funny Game")
+        
+        h = Highscore(game=self.g1, score=10, player=User.objects.get(pk=3))
+        h.save()
+        url = 'http://testserver/game_api/v1/games/tagged/fun/tagged/buy/title/*game/dev/d*?expand=sales,highscores(5),similars(1)'
+        response = client.get(url)
+        jsondata = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(jsondata['games']), 1)
+        self.assertEqual(jsondata['games'][0]['title'], "Funny Game")
+        self.assertEqual(jsondata['games'][0]['sales'], {'total_sales' : 'None', 'times_bought' : 0}) # why does count return None instead of 0?
+        self.assertEqual(jsondata['games'][0]['highscores_top_5'][0]['score'], 10)
+        self.assertEqual(jsondata['games'][0]['similars_top_1'], [{'title' : 'very funny game', 'developer' : 'admin', 'match' : 0.4}])
         

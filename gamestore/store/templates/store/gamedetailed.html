@@ -8,7 +8,7 @@
 {% block content %}
 
     <div class="container">
-        <h3>{{ g.title }}</h3>
+        <h2>{{ g.title }}</h2>
         <div class="row jumbotron">
             <div class="col-sm-4">
                 {% if g.img_url %}
@@ -89,6 +89,7 @@
                     <table class="table table-striped">
                         <thead>
                             <tr>
+                                <th>Rank</th>
                                 <th>Player</th>
                                 <th>Score</th>
                                 <th>Date</th>
@@ -96,11 +97,13 @@
                             {% for s in global_scores %}
                             {% if s.player == request.user %}
                             <tr id="my_score">
+                                <td style="background-color:Beige">{{ forloop.counter }}.</td>
                                 <td style="background-color:Beige">{{ s.player.username }}</td>
                                 <td style="background-color:Beige">{{ s.score }}</td>
                                 <td style="background-color:Beige">{{ s.date_time }}</td>
                             {% else %}
                             <tr>
+                                <td>{{ forloop.counter }}.</td>
                                 <td>{{ s.player.username }}</td>
                                 <td>{{ s.score }}</td>
                                 <td>{{ s.date_time }}</td>
@@ -122,7 +125,7 @@
                     </ul>
                 </div>
                 {% else %}
-                <p>Wow, this game is unique! There are no related games!</p>
+                <h4>Wow, this game is unique! There are no related games!</h4>
                 <p>(if you are the developer of this game, please consider adding some tags)</p>
                 {% endif %}
             </div>

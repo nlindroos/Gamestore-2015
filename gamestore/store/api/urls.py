@@ -1,8 +1,8 @@
 from django.conf.urls import *
 from store.api.views import *
 
-title_pattern = r'(?P<titles>(?:/title/(?:[a-z0-9_*]+))*)'
-dev_pattern = r'(?P<developers>(?:/dev/(?:[a-z0-9_*]+))*)'
+title_pattern = r'(?P<titles>(?:/title/(?:[a-z0-9_*+]+))*)'
+dev_pattern = r'(?P<developers>(?:/dev/(?:[a-z0-9_*+]+))*)'
 tag_pattern = r'(?P<tags>(?:/tagged/(?:[a-z0-9_*]+))*)'
 
 urlpatterns = patterns('',
@@ -27,5 +27,5 @@ urlpatterns = patterns('',
 #
 # examples of valid patterns:
 # /title/some_title/dev/some_dev/tagged/some_tag
-# /title/some_title/title/another_title/tagged/funny/tagged/
+# /title/some_title/title/another_title/tagged/funny
 # /tagged/fun*/dev/dev1/dev/dev2
