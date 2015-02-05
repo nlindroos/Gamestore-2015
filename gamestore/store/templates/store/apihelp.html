@@ -1,0 +1,167 @@
+{% extends 'store/base.html' %}
+{% load staticfiles %}
+
+{% block head %}
+<script src="{% static 'store/js/jquery-1.11.2.min.js' %}"></script>
+<script src="{% static 'store/js/apihelp.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <h1>Gamestore API</h1>
+    <p>
+        Gamestore 2015 offers a free public API for anyone to use.
+        The API can be used to get information about the games, their sales, highscores and more.
+        The API uses a simple REST interface and returns results as JSON.
+    </p>
+    <h2>Table of Contents</h2>
+    <ul>
+        <li>
+            <a href="#requests">Requests</a>
+            <ul>
+                <li><a href="#game_requests">Game Requests</a></li>
+                <li><a href="#sales_requests">Sales Requests</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="#responses">Responses</a>
+            <ul>
+                <li>
+                    <a href="#jsonp">JSONP</a>
+                </li>
+                <li>
+                    <a href="#try_it">Interactive API Console</a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+    <h2 id="requests">Requests</h2>
+    <p>
+        Queries to the API are made using HTTP GET requests. 
+        There are two types of requests: game requests and sales requests (the latter is for developers only). 
+    </p>
+
+    <h3 id="game_requests">Game Requests</h3>
+    
+    <code>/game_api/v1/games/</code>
+    <p></p>
+    <p>The URL above will return all games. The result set can be limited by game title, id, developer name or by tags.</p>
+    
+    <code>/game_api/v1/games/id/5</code><br>
+    <code>/game_api/v1/games/title/some_title</code><br>
+    <code>/game_api/v1/games/dev/some_developer</code><br>
+    <code>/game_api/v1/games/tagged/some_tag</code>
+    
+    <p></p>
+    <p>Titles and developer names may contain spaces. Instead of spaces, use plus signs (+) in the URL:</p>
+    <code>/game_api/v1/games/title/my+awesome+game</code>
+    <p></p>
+    <h4>Wildcards</h4>
+    <p>
+        The asterisk (*) may be used as a wildcard for titles, developer names or tags (matching any number of unknown characters). 
+        For example, the following URL will get all games developed by any developer whose name ends with
+        'studios':
+    </p>
+    <code>/game_api/v1/games/dev/*studios</code>
+    <p></p>
+    <p>Similarly, this URL will get all games whose title contains the word 'awesome':</p>
+    <code>/game_api/v1/games/dev/*awesome*</code>
+    <p></p>
+    
+    <h4>Multiple filters</h4>
+    <p>
+        It is also possible to limit games by sets of IDs, titles, developers and tags.
+        This is done simply by appending another filter. For example, the following URL will
+        find both of the games 'My Little Ostrich Farm' and 'Bird Farming Deluxe':
+    </p>
+    <code>/game_api/v1/games/title/my+little+ostrich+farm/title/bird+farming+deluxe</code>
+    
+    <p></p>
+    <p>
+        Chainig IDs, titles and developers in the way presented above returns games that match any of the filters.
+        When filtering by tags, it is possible to choose whether the result should include games 
+        matching any of the tag filters, or only games that match all of them:
+    </p>
+    <code>/game_api/v1/games/tagged/puzzle/tagged/adventure?tagfilter=any</code><br>
+    <code>/game_api/v1/games/tagged/puzzle/tagged/adventure?tagfilter=all</code>
+    
+    <p></p>
+    <p>
+        Filters for titles, developers and tags (but not IDs) can also be mixed.
+        The following URL gets all games whose title begins with the letter 'a', developed by
+        a developer called 'FTW Studios' and tagged 'puzzle':
+    </p>
+    <code>/game_api/v1/games/title/a*/dev/ftw+studios/tagged/puzzle</code>
+    
+    <p></p>
+    <p>
+        When mixing filters, they must be in the order title, developer, tag.
+        For example, the following works:
+    </p>
+    <code>/game_api/v1/games/title/castle*/title/tower*/dev/*games/tagged/puzzle/tagged/survival</code>
+    <p></p>
+    <p>
+        Whereas the following does not work:
+    </p>
+    <code>/game_api/v1/games/title/castle*/tagged/puzzle/title/tower*/tagged/survival/dev/*games</code>
+    
+    <h4 id="expanding_game_responses">Expanding Responses</h4>
+    <p>
+        Game request responses can be expanded with additional content using the 'expand' query string option:
+    </p>
+    <ul>
+        <li>highscores (shows top N highscores for each game): <code>game_api/v1/games/?expand=highscores(10)</code></li>
+        <li>similars (shows top N most similar games for each game): <code>game_api/v1/games/?expand=similars(10)</code></li>
+    </ul>
+    <p>Multiple expand options can be given at the same time, using commas (,) as separator:</p>
+    <code>game_api/v1/games/?expand=highscores(10),similars(3)</code>
+    
+    
+    <h3 id="sales_requests">Sales Requests</h3>
+    <p>
+        Developers can use this part of the API to check details about their sales.<br>
+        In order to access this part of the API, you must be logged in as a developer.
+    </p>
+    
+    <code>/game_api/v1/sales/</code>
+    <p></p>
+    <p>The URL above will get all sales of the developer currently logged in</p>
+    <p>The result set can be limited by game IDs and game titles. This is done the same way as for game requests
+    (<a href="#game_requests">see above</a>).
+    </p>
+    
+    <h4>Filtering by date</h4>
+    <p>Sales requests can be filtered by date as well as by games:</p>
+    <code>/game_api/v1/sales/startdate/2015-01-01/</code><br>
+    <code>/game_api/v1/sales/enddate/2015-08-01/</code><br>
+    <code>/game_api/v1/sales/startdate/2015-01-01/enddate/2015-08-01/</code>
+    <p></p>
+    
+    <h2 id="responses">Responses</h2>
+    <p>
+        The response of GET requests is a JSON object. Rather than giving specifics about what these objects look like,
+        we provide you with an interactive way to figure it out yourself (<a href="#try_it">see below</a>).
+    </p>
+    <h3 id="jsonp">JSONP</h3>
+    <p>    
+        The JSON response can be wrapped in a callback function (to get JSONP) using the 'callback' querystring option.
+        For example:
+    </p>
+    <code>game_api/v1/games/?callback=mycallback</code>
+    <p></p>
+
+    <h3 id="try_it">Interactive API Console</h3>
+    <p>
+        Here you can try out queries (omit everything up to and including <code>/game_api/v1/</code> from the url). 
+    </p>
+    <p><strong>Note:</strong> the interactive console does not work with the JSONP callback.</p>
+    <form id="api_form" action="#query_result"> {% csrf_token %}
+        <input type="text" name="query" id="query" value="games/"></input>
+        <input type="submit" value="Go!"></input>
+    </form>
+    <p></p>
+    <pre id="query_result"></pre>
+</div>
+
+{% endblock %}
