@@ -1,4 +1,5 @@
 
+
 /* Custom font used in header */
 @font-face {
     font-family: 'lobster';
@@ -7,42 +8,49 @@
     font-style: normal;
 }
 
-h1.text-center {
+h1, h2 {
     font-family: 'lobster';
+}
+
+h1.text-center {
     font-size: 84px;
 }
 
-@media (max-width: 992px) {
-    h1.text-center {
-        font-size: 64px;
-    }
+h2.text-center {
+    font-size: 48px;
+    border-top: 1px solid #EEE;
 }
 
-/*
-#carousel {
-    padding-bottom: 25px;
-    border-bottom: 1px solid #eee;
-}*/
+#wrapper {
+    width: 100%;
+}
 
-#carouselGroup {   
-    /*padding-bottom: 25px;
-    border-bottom: 10px solid #000;
-    background-color: #F2F2F2;
-    z-index: 2;*/
-    max-width: 100%;
-    height: auto;
+#carouselGroup {
+    padding-top: 480px;
+    position: relative;
 }
 
 .carousel {
     border-right: 1px solid #EEE;
-    max-width: 100%;
-    height: auto;
+    top: 0px;
+    bottom: 0px;
+    position: absolute;
 }
 
+.carousel-inner > .item > img,
+.carousel-inner > .item > a > img {
+    height: inherit;
+    max-width: initial;
+}
 #firstCarousel {
-    position: absolute;
-    left: 200px;
     z-index: 5;
+    left: 200px;
+    right: 0px;
+}
+#firstCarousel .item img,
+#firstCarousel .item a img {
+    max-width: 100%;
+    height: auto;
 }
 
 #secondCarousel {
@@ -66,6 +74,8 @@ h1.text-center {
     -ms-filter: blur(5px);
     filter: blur(5px);
 }
+
+
 @media (max-width: 992px) {
     #firstCarousel {
         left: 100px;
@@ -73,19 +83,30 @@ h1.text-center {
     #secondCarousel {
         left: 20%;
     }
+    h1.text-center {
+        font-size: 64px;
+    }
 }
 
 @media (max-width: 767px) {
     #firstCarousel {
         left: 0px;
     }
-
-    #carouselGroup, .carousel, img {
-        max-height: 400px;
-    }
-
     #secondCarousel {
         left: 10%;
     }
 }
 
+/* Start responsive padding */
+@media (max-width: 694px) {
+    #carouselGroup {
+        padding-top: 80%;
+    }
+}
+
+/* Hide #car2 and #car3 when scaling #car1 */
+@media (max-width: 654px) {
+    #secondCarousel, #thirdCarousel {
+        visibility: hidden;
+    }
+}

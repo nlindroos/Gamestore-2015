@@ -7,48 +7,91 @@
 
 {% block content %}
     <h1 class="text-center page-header">Gamestore 2015</h1>
-    <div id="carouselGroup">
-        <div id="firstCarousel" class="carousel slide" data-ride="carousel" data-pause="false">
-            <div class="carousel-inner" role="listbox">
-                <div class="item active">
-                    <img class="first img-responsive" src="http://s6.postimg.org/nwn8bpou9/johan_pointing.jpg" alt="Having fun coding">
-                </div>
-                <div class="item">
-                    <img class="first img-responsive" src="http://s6.postimg.org/kd5vznbi9/confused_martin.jpg" alt="Martin confused">
-                </div>
-                <div class="item">
-                    <img class="first img-responsive" src="http://s6.postimg.org/qs4wwbi81/UI_design.jpg" alt="UI design in progress">
+    <div id="wrapper">
+        <div id="carouselGroup">
+            <div id="firstCarousel" class="carousel slide" data-ride="carousel" data-pause="false">
+                <div class="carousel-inner" role="listbox">
+                    <div class="item active">
+                        <img class="img-responsive" src="http://s6.postimg.org/nwn8bpou9/johan_pointing.jpg" alt="Having fun coding">
+                    </div>
+                    <div class="item">
+                        <img class="img-responsive" src="http://s6.postimg.org/kd5vznbi9/confused_martin.jpg" alt="Martin confused">
+                    </div>
+                    <div class="item">
+                        <img class="img-responsive" src="http://s6.postimg.org/qs4wwbi81/UI_design.jpg" alt="UI design in progress">
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div id="secondCarousel" class="carousel slide" data-ride="carousel" data-pause="false">
-            <div class="carousel-inner" role="listbox">
-                <div class="item">
-                    <img class="second img-responsive" src="http://s6.postimg.org/nwn8bpou9/johan_pointing.jpg" alt="Having fun coding">
-                </div>
-                <div class="item active">
-                    <img class="second img-responsive" src="http://s6.postimg.org/kd5vznbi9/confused_martin.jpg" alt="Martin confused">
-                </div>
-                <div class="item">
-                    <img class="second img-responsive" src="http://s6.postimg.org/qs4wwbi81/UI_design.jpg" alt="UI design in progress">
+            <div id="secondCarousel" class="carousel slide" data-ride="carousel" data-pause="false">
+                <div class="carousel-inner" role="listbox">
+                    <div class="item">
+                        <img  src="http://s6.postimg.org/nwn8bpou9/johan_pointing.jpg" alt="Having fun coding">
+                    </div>
+                    <div class="item active">
+                        <img  src="http://s6.postimg.org/kd5vznbi9/confused_martin.jpg" alt="Martin confused">
+                    </div>
+                    <div class="item">
+                        <img  src="http://s6.postimg.org/qs4wwbi81/UI_design.jpg" alt="UI design in progress">
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div id="thirdCarousel" class="carousel slide" data-ride="carousel" data-pause="false">
-            <div class="carousel-inner" role="listbox">
-                <div class="item">
-                    <img src="http://s6.postimg.org/nwn8bpou9/johan_pointing.jpg" alt="Having fun coding">
-                </div>
-                <div class="item">
-                    <img src="http://s6.postimg.org/kd5vznbi9/confused_martin.jpg" alt="Martin confused">
-                </div>
-                <div class="item active">
-                    <img src="http://s6.postimg.org/qs4wwbi81/UI_design.jpg" alt="UI design in progress">
+            <div id="thirdCarousel" class="carousel slide" data-ride="carousel" data-pause="false">
+                <div class="carousel-inner" role="listbox">
+                    <div class="item">
+                        <img  src="http://s6.postimg.org/nwn8bpou9/johan_pointing.jpg" alt="Having fun coding">
+                    </div>
+                    <div class="item">
+                        <img  src="http://s6.postimg.org/kd5vznbi9/confused_martin.jpg" alt="Martin confused">
+                    </div>
+                    <div class="item active">
+                        <img  src="http://s6.postimg.org/qs4wwbi81/UI_design.jpg" alt="UI design in progress">
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <h2 class="text-center">Try this game out</h2>
+    <div class="container">
+        <h3><a href="{% url 'gamedetailed' g.pk %}">{{ g.title }}</a></h3>
+        <div class="row">
+            <div class="col-md-2">
+                {% if g.img_url %}
+                    <img src="{{ g.img_url }}" class="img-thumbnail" alt="picture of game"></img>
+                {% else %}
+                    <img src="{% static 'store/images/russia.jpeg' %}" class="img-thumbnail" alt="picture of game"></img>
+                {% endif %}
+            </div>
+            <div class="col-md-5">
+                {% if g.description %}
+                    <p>{{ g.description }}</p>
+                {% else %}
+                    <p>No description available.</p>
+                {% endif %}
+            </div>
+            <div class="col-md-3">
+                <span>Tags: </span>
+                <ul class="list-unstyled">
+                {% for t in g.get_tags %}
+                    <li>{{ t }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            <!-- If the user is logged in and belongs to group Players -->
+            <div class="col-md-2">
+                {% if "Players" == request.user.groups.all.0.name %}
+                    <a href="{% url 'play' g.pk %}"><button>Play now!</button></a>
+                {% else %}
+                    <a href="{% url 'login' %}"><button>Please log in to play.</button></a>
+                {% endif %}
+            </div>
+        </div>   
+    </div>
+    <div class="container bottom">
+        <h2 class="text-center">What is this?</h2>
+        <p>Something about this site</p>
     </div>
 
 {% endblock %}

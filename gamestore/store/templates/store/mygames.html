@@ -5,7 +5,8 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container">
+    <h1 class="text-center">My Games</h1>
+    <div class="container bottom">
         {% for g in game_set %}
             <a href="{% url 'play' g.pk %}"><h3>{{ g.title }}</h3></a>
             <div class="row">
