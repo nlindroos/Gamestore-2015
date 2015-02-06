@@ -64,7 +64,7 @@
                 {% if g not in owned %}
                     {% if g.price > 0 %}
                     <p class="js-price">{{ g.price }} €</p>
-                    <form action="/checkout" method="post">  {% csrf_token %}
+                    <form action="/checkout" method="post"> {% csrf_token %}
                         <input name="game_id" type="hidden" value="{{ g.pk }}">
                         {% if "Players" == request.user.groups.all.0.name %}
                             <button type="submit" formaction="/checkout">Buy now</button>
@@ -72,7 +72,7 @@
                     </form>
                     {% else %}
                     <p class="js-price">FREE!</p>
-                    <form action="/checkout" method="post">  {% csrf_token %}
+                    <form action="/checkout" method="post"> {% csrf_token %}
                         <input name="game_id" type="hidden" value="{{ g.pk }}">
                         {% if "Players" == request.user.groups.all.0.name %}
                             <button type="submit" formaction="/checkout">Add to my games</button>
