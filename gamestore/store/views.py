@@ -91,7 +91,7 @@ def denied_view(request, reason="Access denied"):
 def login_view(request):
     """
     View for logging in. 
-    Redirect to /auth is done by form action attribute (see logn.html).
+    Redirect to /auth is done by form action attribute (see login.html).
     """
     if request.user.is_authenticated():
         return HttpResponseRedirect('/loggedin')

@@ -28,7 +28,8 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav navbar-right">
-                    <li><a href="{% url 'allgames' %}">All games</a></li>
+                    <li><a href="{% url 'allgames' %}">Games</a></li>
+                    <li><a href="{% url 'apihelp' %}">API</a></li>
                     {% if request.user.is_authenticated %}
                     <!-- If the user is a Player -->
                     {% if "Players" == request.user.groups.all.0.name  %}
