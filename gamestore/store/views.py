@@ -496,9 +496,15 @@ def gamescore_ajax_view(request, game):
 
 
 def home(request):
-    all_games = Game.objects.all()
-    choice = random.choice(all_games)
-    return render(request, 'store/home.html', {'g': choice})
+    games = Game.objects.all()
+    choice = random.choice(games)
+    if request.user.is_authenticated() and is_player(request.user):
+        # players may own games: don't let them buy the same game twice:
+        owned_games = list(x.game for x in request.user.ownedgame_set.all())       
+        return render(request, 'store/home.html', {'g' : choice, 'owned' : owned_games})
+    # default behaviour for devs and unregistered users:
+    return render(request, 'store/home.html', {'g' : choice, 'owned' : set()})
+    #return render(request, 'store/home.html', {'g': choice})
 
 
 

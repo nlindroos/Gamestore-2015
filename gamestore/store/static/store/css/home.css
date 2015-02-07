@@ -1,6 +1,11 @@
+/* Medium devices */
+@media (max-width: 992px) {
+    div {
+        text-align: center;
+    }
+}
 
-
-/* Custom font used in header */
+/* Custom font used in h1 and h2 headers */
 @font-face {
     font-family: 'lobster';
     src: url('../fonts/lobster-two/LobsterTwo-Bold.otf') format('opentype');
