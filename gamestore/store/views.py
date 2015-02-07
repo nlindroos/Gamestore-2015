@@ -504,7 +504,6 @@ def home(request):
         return render(request, 'store/home.html', {'g' : choice, 'owned' : owned_games})
     # default behaviour for devs and unregistered users:
     return render(request, 'store/home.html', {'g' : choice, 'owned' : set()})
-    #return render(request, 'store/home.html', {'g': choice})
 
 
 

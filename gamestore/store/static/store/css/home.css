@@ -28,6 +28,7 @@ h2.text-center {
 
 #wrapper {
     width: 100%;
+    overflow-x: hidden;
 }
 
 #carouselGroup {
@@ -36,7 +37,6 @@ h2.text-center {
 }
 
 .carousel {
-    border-right: 1px solid #EEE;
     top: 0px;
     bottom: 0px;
     position: absolute;
@@ -129,6 +129,6 @@ h2.text-center {
 /* Hide #car2 and #car3 when scaling #car1 */
 @media (max-width: 654px) {
     #secondCarousel, #thirdCarousel {
-        visibility: hidden;
+        display: none;
     }
 }
