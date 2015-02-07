@@ -28,7 +28,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
+# TODO: Uncomment social.apps... to enable google login
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -36,6 +36,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #'social.apps.django_app.default',
     'store',
 )
 
@@ -84,7 +85,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 LOGIN_URL = '/login'
-
+# TODO: Uncomment social to enable google login
+#SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/google_login'
 
 TEMPLATE_CONTEXT_PROCESSORS = ("django.contrib.auth.context_processors.auth",
 "django.core.context_processors.debug",
@@ -94,9 +96,24 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.contrib.auth.context_processors.auth",
 "django.core.context_processors.tz",
 "django.contrib.messages.context_processors.messages",
 'django.core.context_processors.request', # to get the username in navbar etc.
+#'social.apps.django_app.context_processors.backends',
+#'social.apps.django_app.context_processors.login_redirect',
 )
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # enables email validation
+
+# Third party authentication
+# TODO: Uncomment to enable google login
+'''
+AUTHENTICATION_BACKENDS = (
+   'social.backends.facebook.FacebookOAuth2',
+   'social.backends.google.GoogleOAuth2',
+   'social.backends.twitter.TwitterOAuth',
+   'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "826277999815-o86gg33k7ih4c766c8r4gict8gsptbmd.apps.googleusercontent.com"
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "lPIOgJXlxN91XxShW9XMI0vC"'''
 
 # heroku stuff:
 if "DYNO" in os.environ:

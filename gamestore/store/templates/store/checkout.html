@@ -1,9 +1,5 @@
 {% extends "store/base.html" %}
 
-{% block head %}
-    <script src="store/js/jquery-1.11.2.min.js"></script>
-{% endblock %}
-
 {% block content %}
     <div class="container">
         <h2>Checkout</h2>
@@ -20,16 +16,24 @@
             <button type="submit" value="Accept Payment">Yes, more games!</button>
         </form>
         <form action={{ cancel_url }} method="get">
+            <input type="hidden" name="pid" value={{ pid }} />
+            <input type="hidden" name="ref" value=0 />
+            <input type="hidden" name="checksum" value=0 />
             <button type="submit">No, cancel purchase.</button>
         </form>
         {% else %}
         <p>You are planning to add the free game &quot;{{ game_title }}&quot; to your games. Do you want to proceed?</p>
         <form action={{ success_url }} method="get">
             <input type="hidden" name="pid" value={{ pid }} />
+            <input type="hidden" name="ref" value=0 />
+            <input type="hidden" name="checksum" value=0 />
+            <input type="hidden" name="price" value=0 />
             <button type="submit">Yes</button>
         </form>
         <form action={{ cancel_url }} method="get">
             <input type="hidden" name="pid" value={{ pid }} />
+            <input type="hidden" name="ref" value=0 />
+            <input type="hidden" name="checksum" value=0 />
             <button type="submit">No</button>
         </form>
         {% endif %}
