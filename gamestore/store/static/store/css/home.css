@@ -44,7 +44,7 @@ h2.text-center {
 }
 #firstCarousel {
     z-index: 5;
-    left: 200px;
+    left: 10%;
     right: 0px;
 }
 #firstCarousel .item img,
@@ -75,13 +75,30 @@ h2.text-center {
     filter: blur(5px);
 }
 
-
-@media (max-width: 992px) {
+/* Fiddlery with the width of the carousels on different screen sizes */
+@media (min-width: 993px) {
     #firstCarousel {
-        left: 100px;
+        left: 0px;
     }
     #secondCarousel {
         left: 20%;
+    }
+}
+@media (min-width: 1500px) {
+    #firstCarousel {
+        left: 200px;
+    }
+    #secondCarousel {
+        left: 30%;
+    }
+}
+
+@media (max-width: 992px) {
+    #firstCarousel {
+        left: 0px;
+    }
+    #secondCarousel {
+        left: 15%;
     }
     h1.text-center {
         font-size: 64px;
