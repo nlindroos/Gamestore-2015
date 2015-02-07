@@ -9,7 +9,7 @@
 
 {% block content %}
     <div class="container">
-        <h1>Explore Games</h1>
+        <h1 class="text-center">Explore Games</h1>
         <h3 class="style-header">Filter results</h3>
         <form id="js-search-form">
             <div class="form-group">
@@ -34,9 +34,9 @@
             </div>
         </form>
     </div>
-    <div id="gamelist" class="container">
+    <div id="gamelist" class="container bottom">
         {% for g in games %}
-            <h3 class="js-header"><a href="/allgames/{{ g.pk }}">{{ g.title }}</a></h3>
+            <h3><a href="{% url 'gamedetailed' g.pk %}">{{ g.title }}</a></h3>
             <div class="row">
                 <div class="col-md-2">
                     {% if g.img_url %}

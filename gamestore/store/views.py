@@ -12,7 +12,7 @@ from django.core.signing import Signer
 from store.forms import MyRegistrationForm, GameForm
 from store.models import *
 from hashlib import md5
-import re
+import re, random
 
 def is_player(user):
     """
@@ -453,7 +453,9 @@ def gamescore_ajax_view(request, game):
 
 
 def home(request):
-    return render(request, 'store/home.html')
+    all_games = Game.objects.all()
+    choice = random.choice(all_games)
+    return render(request, 'store/home.html', {'g': choice})
 
 
 

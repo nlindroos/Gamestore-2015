@@ -29,3 +29,8 @@ body {
 .glyphicon-home {
     margin-right: 15px;
 }
+
+/* Adding additional space to the bottom. Please use this class on any element placed last on a page */
+.bottom {
+    margin-bottom: 30px;
+}

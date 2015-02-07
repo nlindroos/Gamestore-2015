@@ -60,7 +60,7 @@
           <li id="related_tab" role="presentation" class=""><a href="#related_games" aria-controls="related_games" role="tab" data-toggle="tab">Related games</a></li>
           <li id="others_by_dev_tab" role="presentation" class=""><a href="#others_by_dev" aria-controls="others_by_dev" role="tab" data-toggle="tab">More games by {{ g.developer.username }}</a></li>
         </ul>
-        <div class="tab-content">
+        <div class="tab-content bottom">
             <div role="tabpanel" class="tab-pane active row" id="highscores">
                 {% if owned %}
                 <div class="col-sm-5 table-responsive">
@@ -120,7 +120,7 @@
                     <h4>Related Games</h4>
                     <ul>
                     {% for r in related %}
-                        <li><a href="/allgames/{{ r.0.pk }}">{{ r.0.title }}</a><span> Match: {{ r.1 }}</span></li>
+                        <li><a href="{% url 'gamedetailed' r.0.pk %}"><span> Match: {{ r.1 }}</span></a></li>
                     {% endfor %}
                     </ul>
                 </div>
@@ -135,7 +135,7 @@
                     <ul>
                     {% for og in g.developer.game_set.all %}
                         {% if og != g %}
-                        <li><a href="/allgames/{{ og.pk }}">{{ og.title }}</a></li>
+                        <li><a href="{% url 'gamedetailed' og.pk %}">{{ og.title }}</a></li>
                         {% endif %}
                     {% endfor %}
                     </ul>
