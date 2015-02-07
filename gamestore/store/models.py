@@ -3,9 +3,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import re
 
-# NOTE: Django sets variables names from e.g. player to player_id in the db when ForeignKey is used, but we only need to use player to refer to this field.
-
-# Should we combine Highscore OwnedGame and Purchase, since each of these only add one column?
+# NOTE: Django sets variables names from e.g. player to player_id in the db when ForeignKey is used, but we
+# only need to use player to refer to this field.
 
 def validate_price(price):
     if price < 0:

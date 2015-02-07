@@ -59,7 +59,7 @@
     "fields": {
       "player": 3,
       "game": 4,
-      "game_state": "",
+      "game_state": ""
     }
   },
   {
@@ -68,7 +68,7 @@
     "fields": {
       "player": 1,
       "game": 2,
-      "game_state": "",
+      "game_state": ""
     }
   },
   {
@@ -79,8 +79,8 @@
       "game": 2,
       "date_time": "1985-04-12T23:20:50.52Z",
       "fee": 7,
-      "payment_confirmed": True,
-      "reference_number": 123456,
+      "payment_confirmed": true,
+      "reference_number": 123456
     }
   },
   {
@@ -91,8 +91,8 @@
       "game": 1,
       "date_time": "1986-04-12T23:20:50.52Z",
       "fee": 4.20,
-      "payment_confirmed": True,
-      "reference_number": 234567,
+      "payment_confirmed": true,
+      "reference_number": 234567
     }
   }
 ]

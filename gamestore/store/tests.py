@@ -9,6 +9,7 @@ from django.http import HttpResponse, Http404, HttpResponseRedirect
 import json
 from datetime import datetime, timedelta
 import django.utils.timezone as timez
+from django.db import IntegrityError
 
 
 class DummyObject(object):
@@ -60,6 +61,65 @@ class TestGameModel(TestCase):
         self.g6.save()
         self.assertEqual(self.g2.get_related_games(), [(self.g1, 0.4), (self.g4, 1.0), (self.g5, 1/3)])
         self.assertEqual(self.g6.get_related_games(), [])
+
+class TestHighscoreModel(TestCase):
+    """
+    Tests model Highscore
+    """
+    fixtures = ['different_name.json', 'users.json']
+
+    def setUp(self):
+        self.player = User.objects.get(pk=3)
+        self.game = Game.objects.get(pk=3)
+        self.hs1 = Highscore(player=self.player, game=self.game, score=500)
+
+    def test_highscore_unique_player_game_combination(self):
+        hs2 = Highscore(player=self.player, game=self.game, score=800)
+        self.hs1.save()
+        # Should break the uniqueness condition
+        with self.assertRaises(IntegrityError):
+            hs2.save()
+
+class TestOwnedGameModel(TestCase):
+    """
+    Tests model OwnedGame
+    """
+    fixtures = ['different_name.json', 'users.json']
+
+    def setUp(self):
+        self.owned = OwnedGame.objects.get(pk=1)
+        self.player = self.owned.player
+        self.game = self.owned.game
+
+    def test_player_cannot_own_several_copies_of_one_game(self):
+        self.assertEqual(self.player.first_name, "John", "First name should be John.")
+        self.assertEqual(self.game.title, "Example Game", "Game should be called Example Game.")  
+        owned = OwnedGame(player=self.player, game=self.game, game_state="")
+        with self.assertRaises(IntegrityError):
+            owned.save()
+
+class TestPurchaseModel(TestCase):
+    """
+    Tests model Purchase
+    """
+    fixtures = ['different_name.json', 'users.json']
+
+    def setUp(self):
+        self.purchase = Purchase.objects.get(pk=1)
+        self.player = self.purchase.player
+        self.game = self.purchase.game
+
+    def test_player_cannot_buy_free_game_several_times(self):
+        purchase_free = Purchase(player=self.player, game=self.game, fee=0.00)
+        with self.assertRaises(IntegrityError):
+            purchase_free.save()
+
+
+    def test_player_cannot_buy_game_with_price_several_times(self):
+        purchase_cost = Purchase(player=self.player, game=self.game, fee=100)
+        with self.assertRaises(IntegrityError):
+            purchase_cost.save()
+
 
 class TestUsers(TestCase):
     fixtures = ['groups.json', 'users.json']
@@ -378,8 +438,6 @@ class TestApi(TestCase):
         # making some test purchases
         player = User.objects.get(pk=3)
         p = Purchase(game=self.g1, player=player, fee='10', payment_confirmed=True)
-        p.save()
-        p = Purchase(game=self.g1, player=player, fee='5', payment_confirmed=True)
         p.save()
         p = Purchase(game=self.g3, player=player, fee='7', payment_confirmed=True)
         p.save()
