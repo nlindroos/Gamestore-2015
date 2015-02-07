@@ -437,7 +437,10 @@ class TestApi(TestCase):
         
         # making some test purchases
         player = User.objects.get(pk=3)
+        player2 = User.objects.get(pk=2)
         p = Purchase(game=self.g1, player=player, fee='10', payment_confirmed=True)
+        p.save()
+        p = Purchase(game=self.g1, player=player2, fee='5', payment_confirmed=True)
         p.save()
         p = Purchase(game=self.g3, player=player, fee='7', payment_confirmed=True)
         p.save()
@@ -705,7 +708,7 @@ class TestApi(TestCase):
         # this should only get purchases 1 and 2 (game 1)
         url = 'http://testserver/game_api/v1/sales/startdate/2014-01-01'
         r1 = self.client.get(url)
-        url = 'http://testserver/game_api/v1/sales/id/1'
+        url = 'http://testserver/game_api/v1/sales/id/1/id/2'
         r2 = self.client.get(url)
         self.assertEqual(json.loads(r1.content.decode('utf-8')), json.loads(r2.content.decode('utf-8')))
         

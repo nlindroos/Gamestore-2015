@@ -303,7 +303,7 @@ def api_dev_sales_view(request, id='', titles='', startdate='', enddate=''):
     for t in title_list:
         subquery1 |= wildcard_builder(t, 'game__title')
         
-    query = (Q(game__developer__exact=request.user) & subquery0 & subquery1)
+    query = (Q(payment_confirmed__exact=True) & Q(game__developer__exact=request.user) & subquery0 & subquery1)
     if startdate:
         try:
             # django wants a timezone: ok, use utc, as we want the response to 
