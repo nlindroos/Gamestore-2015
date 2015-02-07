@@ -99,6 +99,8 @@
                                 <th>Score</th>
                                 <th>Date</th>
                             </tr>
+                        </thead>
+                        <tbody>
                             {% for s in global_scores %}
                             {% if s.player == request.user %}
                             <tr id="my_score">
@@ -115,7 +117,7 @@
                             {% endif %}
                             </tr>
                             {% endfor %}
-                        </thead>
+                        </tbody>
                     </table>
                 </div> 
             </div>
@@ -123,11 +125,22 @@
                 {% if related %}
                 <div class="col-sm-12">
                     <h4>Related Games</h4>
-                    <ul class="list-unstyled">
-                    {% for r in related %}
-                        <li><a href="{% url 'gamedetailed' r.0.pk %}"><span> Match: {{ r.1 }}</span></a></li>
-                    {% endfor %}
-                    </ul>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Match</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in related %}
+                            <tr>
+                                <td><a href="{% url 'gamedetailed' r.0.pk %}">{{r.0.title}}</a></td>
+                                <td>{{ r.1 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
                 {% else %}
                 <h4>Wow, this game is unique! There are no related games!</h4>
