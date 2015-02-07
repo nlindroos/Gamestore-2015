@@ -21,10 +21,14 @@
         </div>
         <button type="submit" value="login" class="btn btn-default">Log in</button>
     </form>
+    {% comment TODO: Uncomment this row to enable Google Login %}
+    <br>
+    <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}">Login with Google (as a player)</a>
+    <br>
+    {% endcomment %}
     <br><div><a href="{% url 'signup' %}">Not yet a member? Sign up here.</a></div>
 </div>
 
 
 
 {% endblock %}
-

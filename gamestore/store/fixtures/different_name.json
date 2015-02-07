@@ -79,7 +79,8 @@
       "game": 2,
       "date_time": "1985-04-12T23:20:50.52Z",
       "fee": 7,
-      "payment_confirmed": True
+      "payment_confirmed": True,
+      "reference_number": 123456,
     }
   },
   {
@@ -90,7 +91,8 @@
       "game": 1,
       "date_time": "1986-04-12T23:20:50.52Z",
       "fee": 4.20,
-      "payment_confirmed": True
+      "payment_confirmed": True,
+      "reference_number": 234567,
     }
   }
 ]
