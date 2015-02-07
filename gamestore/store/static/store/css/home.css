@@ -47,11 +47,13 @@ h2.text-center {
     height: inherit;
     max-width: initial;
 }
+
 #firstCarousel {
     z-index: 5;
     left: 10%;
     right: 0px;
 }
+
 #firstCarousel .item img,
 #firstCarousel .item a img {
     max-width: 100%;
@@ -89,6 +91,7 @@ h2.text-center {
         left: 20%;
     }
 }
+
 @media (min-width: 1500px) {
     #firstCarousel {
         left: 200px;
