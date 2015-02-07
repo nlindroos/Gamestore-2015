@@ -12,8 +12,3 @@
 .style-header {
     margin-bottom: 25px;
 }
-
-ul {
-    /* Prevents dots from moving to the far left in (at least) Chrome */
-    list-style-position: inside;
-}

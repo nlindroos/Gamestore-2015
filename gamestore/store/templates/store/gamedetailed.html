@@ -2,6 +2,7 @@
 {% load staticfiles %}
 
 {% block head %}
+    <link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/gamedetailed.css' %}">
     <script src="{% static 'store/js/gamedetailed.js' %}"></script>
 {% endblock %}
 
@@ -10,27 +11,27 @@
     <div class="container">
         <h2>{{ g.title }}</h2>
         <div class="row jumbotron">
-            <div class="col-sm-4">
+            <div class="col-md-4">
                 {% if g.img_url %}
                 <img src="{{ g.img_url }}" alt="picture of game" class="img-thumbnail"></img>
                 {% else %}
                 <img src="{% static 'store/images/russia.jpeg' %}" alt="picture of game" class="img-thumbnail"></img>
                 {% endif %}
             </div>
-            <div class="col-sm-5">
+            <div class="col-md-5">
                 {% if g.description %}
                     <p>{{ g.description }}</p>
                 {% else %}
                     <p>No description available.</p>
                 {% endif %}
                 <h4>Tags</h4>
-                <ul>
+                <ul class="list-unstyled">
                 {% for t in g.get_tags %}
                     <li>{{ t }}</li>
                 {% endfor %}
                 </ul>
             </div>
-            <div class="col-sm-3">
+            <div class="col-md-3">
             {% if not owned %}
                 {% if g.price > 0 %}
                 <p>{{ g.price }} €</p>
@@ -38,6 +39,8 @@
                     <input name="game_id" type="hidden" value="{{ g.pk }}">
                     {% if "Players" == request.user.groups.all.0.name %}
                         <button type="submit" formaction="/checkout">Buy now</button>
+                    {% elif not "Developers" == request.user.groups.all.0.name %}
+                        <a href="{% url 'login' %}"><button>Please log in to play.</button></a>
                     {% endif %}
                 </form>
                 {% else %}
@@ -46,6 +49,8 @@
                         <input name="game_id" type="hidden" value="{{ g.pk }}">
                         {% if "Players" == request.user.groups.all.0.name %}
                             <button type="submit" formaction="/checkout">Add to my games</button>
+                        {% elif not "Developers" == request.user.groups.all.0.name %}
+                            <a href="{% url 'login' %}"><button>Please log in to play.</button></a>
                         {% endif %}
                 </form>
                 {% endif %}
@@ -118,7 +123,7 @@
                 {% if related %}
                 <div class="col-sm-12">
                     <h4>Related Games</h4>
-                    <ul>
+                    <ul class="list-unstyled">
                     {% for r in related %}
                         <li><a href="{% url 'gamedetailed' r.0.pk %}"><span> Match: {{ r.1 }}</span></a></li>
                     {% endfor %}
@@ -132,7 +137,7 @@
             <div role="tabpanel" class="tab-pane row" id="others_by_dev">
                 <div class="col-sm-12">
                     <h4>Other games by {{ g.developer.username }}</h4>
-                    <ul>
+                    <ul class="list-unstyled">
                     {% for og in g.developer.game_set.all %}
                         {% if og != g %}
                         <li><a href="{% url 'gamedetailed' og.pk %}">{{ og.title }}</a></li>
