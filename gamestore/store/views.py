@@ -255,25 +255,31 @@ def checkout_view(request):
     """
     if request.method == 'GET':
         return HttpResponseRedirect('/denied')
-    dictator = {}
-    game_id = request.POST.get('game_id', '')
-    game = Game.objects.get(pk=game_id)
-    purchase = Purchase(player=request.user, game=game, fee=game.price, payment_confirmed=False, reference_number=0)
-    purchase.save()
-    pid = purchase.pk                                   # Purchase ID is private key of "Purchase" object
-    amount = purchase.fee
-    dictator['game_title'] = game.title
-    dictator['pid'] = pid
-    dictator['sid'] = sid
-    dictator['price'] = amount
-    dictator['success_url'] = 'http://127.0.0.1:8000/confirm_order/'
-    dictator['cancel_url'] = 'http://127.0.0.1:8000/cancel_order/'
-    dictator['error_url'] = 'http://127.0.0.1:8000/denied'
-    checksumstr = "pid=%s&sid=%s&amount=%s&token=%s"%(pid, sid, amount, secret_key)
-    m = md5(checksumstr.encode("ascii"))
-    checksum = m.hexdigest()
-    dictator['checksum'] = checksum
-    return render(request, 'store/checkout.html', dictator)
+    try:
+        dictator = {}
+        game_id = request.POST.get('game_id', '')
+        game = Game.objects.get(pk=game_id)
+        p = Purchase.objects.filter(game=game, player=request.user, payment_confirmed=False)
+        if p:
+            p.delete()
+        purchase = Purchase(player=request.user, game=game, fee=game.price, payment_confirmed=False, reference_number=0)
+        purchase.save()
+        pid = purchase.pk                                   # Purchase ID is private key of "Purchase" object
+        amount = purchase.fee
+        dictator['game_title'] = game.title
+        dictator['pid'] = pid
+        dictator['sid'] = sid
+        dictator['price'] = amount
+        dictator['success_url'] = 'http://127.0.0.1:8000/confirm_order/'
+        dictator['cancel_url'] = 'http://127.0.0.1:8000/cancel_order/'
+        dictator['error_url'] = 'http://127.0.0.1:8000/denied'
+        checksumstr = "pid=%s&sid=%s&amount=%s&token=%s"%(pid, sid, amount, secret_key)
+        m = md5(checksumstr.encode("ascii"))
+        checksum = m.hexdigest()
+        dictator['checksum'] = checksum
+        return render(request, 'store/checkout.html', dictator)
+    except:
+        raise Http404("Checkout failed")
 
 @login_only
 @players_only
@@ -341,6 +347,28 @@ def developer_view(request):
     games = Game.objects.filter(developer=request.user).annotate(Sum('purchase__fee')).annotate(Count('purchase'))
     
     return render(request, 'store/developer.html', {'games' : games, 'devname' : request.user.username})
+
+@login_only
+def profile_view(request):
+    """
+    View that lets player or developer view details and change his/her password.
+    
+    Requires that the user is logged in.
+    """
+    if request.method=='POST':
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        p_success = None
+        if ((password1 != '') and (password1 == password2)):
+            request.user.set_password(password1)
+            request.user.save()
+            p_success = True
+            return render(request, 'store/profile.html', {'p_success' : p_success})
+        else:
+            return render(request, 'store/profile.html', {'p_success' : False})
+    
+    else:
+        return render(request, 'store/profile.html', {'p_success' : None})
 
 @login_only
 @developers_only

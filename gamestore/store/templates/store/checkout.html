@@ -15,7 +15,7 @@
                 <input type="hidden" name="amount" value={{ price }} />
             <button type="submit" value="Accept Payment">Yes, more games!</button>
         </form>
-        <form action={{ cancel_url }} method="get">
+        <form action="{% url 'cancel_order' %}" method="get">
             <input type="hidden" name="pid" value={{ pid }} />
             <input type="hidden" name="ref" value=0 />
             <input type="hidden" name="checksum" value=0 />
@@ -23,18 +23,19 @@
         </form>
         {% else %}
         <p>You are planning to add the free game &quot;{{ game_title }}&quot; to your games. Do you want to proceed?</p>
-        <form action={{ success_url }} method="get">
+        <form action="{% url 'confirm_order' %}" method="get">
             <input type="hidden" name="pid" value={{ pid }} />
             <input type="hidden" name="ref" value=0 />
             <input type="hidden" name="checksum" value=0 />
             <input type="hidden" name="price" value=0 />
-            <button type="submit">Yes</button>
+            <button class="btn btn-success" type="submit">Yes</button>
         </form>
-        <form action={{ cancel_url }} method="get">
+        <br>
+        <form action="{% url 'cancel_order' %}" method="get">
             <input type="hidden" name="pid" value={{ pid }} />
             <input type="hidden" name="ref" value=0 />
             <input type="hidden" name="checksum" value=0 />
-            <button type="submit">No</button>
+            <button class="btn btn-danger" type="submit">No</button>
         </form>
         {% endif %}
     </div>
