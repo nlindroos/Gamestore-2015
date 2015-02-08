@@ -266,9 +266,9 @@ def checkout_view(request):
     dictator['pid'] = pid
     dictator['sid'] = sid
     dictator['price'] = amount
-    dictator['success_url'] = 'http://localhost:8000/confirm_order/'
-    dictator['cancel_url'] = 'http://localhost:8000/cancel_order/'
-    dictator['error_url'] = 'http://localhost:8000/denied'
+    dictator['success_url'] = 'http://127.0.0.1:8000/confirm_order/'
+    dictator['cancel_url'] = 'http://127.0.0.1:8000/cancel_order/'
+    dictator['error_url'] = 'http://127.0.0.1:8000/denied'
     checksumstr = "pid=%s&sid=%s&amount=%s&token=%s"%(pid, sid, amount, secret_key)
     m = md5(checksumstr.encode("ascii"))
     checksum = m.hexdigest()
