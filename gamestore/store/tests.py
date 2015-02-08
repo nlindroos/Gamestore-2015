@@ -10,6 +10,7 @@ import json
 from datetime import datetime, timedelta
 import django.utils.timezone as timez
 from django.db import IntegrityError
+from decimal import Decimal
 
 
 class DummyObject(object):
@@ -17,6 +18,19 @@ class DummyObject(object):
     Instant object, just add attributes!
     """
     pass
+    
+class DummyPost(object):
+    def __init__(self, d):
+        self.data = d
+        
+    def getlist(self, key):
+        return self.data[key]
+        
+    def __get_item__(self, key):
+        return self.d[key]
+        
+    def get(self, key, default):
+        return self.data.get(key, default)
     
 def fake_view(request):
     return "success"
@@ -28,17 +42,17 @@ class TestGameModel(TestCase):
         dev = User.objects.get(pk=4)
         self.g1 = Game(developer=dev, title='t1', tags='fun,game,buy,please')
         self.g2 = Game(developer=dev, title='t2', tags='fun,game,cheap')
-        self.g3 = Game(developer=dev, title='t3', tags='a lOt    ,  of    , extra  space\t, like__rEalLy, a_ _lot')
+        self.g3 = Game(developer=dev, title='t3', tags='a lOt    ,  of    , extra  space\t, like__rEalLy, a_ _lot!!!')
         self.g4 = Game(developer=dev, title='t4', tags='fun,game,cheap')
         self.g5 = Game(developer=dev, title='t5', tags='fun')
-        self.g6 = Game(developer=dev, title='t6', tags='')
+        self.g6 = Game(developer=dev, title=" Search Me & be'  happy!, -100% please? ", tags='')
         self.g8 = Game(developer=dev, title='t8', tags='1,2,3,4,9,6,7,8,9,10,9,9,11')
         
     def test_get_tags(self):
         self.assertEqual(self.g1.get_tags(), ['fun', 'game', 'buy', 'please'])
         
     def test_get_tags_unsaved_spaces(self):
-        self.assertEqual(self.g3.get_tags(), ['a lOt    ', '  of    ', ' extra  space\t', ' like__rEalLy', ' a_ _lot'])
+        self.assertEqual(self.g3.get_tags(), ['a lOt    ', '  of    ', ' extra  space\t', ' like__rEalLy', ' a_ _lot!!!'])
         
     def test_saved_tags(self):
         self.g3.save()
@@ -48,8 +62,19 @@ class TestGameModel(TestCase):
         # any amount of spaces or underscore should be replaced by one underscore
         # no duplicates (after all modifications listed above)
         # tags sorted alphabetically
+        # special chars removed
         self.assertEqual(self.g3.get_tags(), ['a_lot', 'extra_space', 'like_really', 'of'])
         self.assertEqual(self.g8.get_tags(), ['1', '10', '11', '2', '3', '4', '6', '7', '8', '9'])
+        
+    def test_search_title(self):
+        self.g6.save()
+        # leading and trailing spaces should be removed
+        # extra spaces shortened to max one space
+        # upperase -> lower case
+        # '&' -> 'and'
+        # '%' -> 'percent'
+        # other special characters removed
+        self.assertEqual(self.g6.search_title, 'search me and be happy 100percent please')
         
     def test_related_games(self):
         
@@ -214,60 +239,110 @@ class TestGameForm(TestCase):
     Tests GameForm validation.
     This form is used in /dev edit.  
     """
-    
+
     def test_valid_form(self):
-        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'img_url' : 'http://example.com'}
+        d = {'title' : 'Cool title bro', 
+                          'price' : Decimal(0), 'url' : "http://example.com/", 
+                          'description' : 'hello', 'img_url' : 'http://example.com/',
+                          'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
-        self.assertEqual(f.is_valid(), True, 'This form should be valid')
+        v = f.is_valid()
+        self.assertEqual(v, True, 'This form should be valid')
+        self.assertEqual(d, f.cleaned_data)
     
     def test_title(self):
-        post = {'price' : 0, 'url' : "http://example.com", 'description' : 'hello'}
+        d = {'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
         self.assertEqual(f.is_valid(), False, 'Game must have title')
         
-        post = {'title' : '', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello'}
+        d = {'title' : '', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
         self.assertEqual(f.is_valid(), False, 'Game title cannot be empty')
         
     def test_price(self):
-        post = {'title' : 'Cool title bro', 'url' : "http://example.com", 'description' : 'hello'}
+        d = {'title' : 'Cool title bro', 'url' : "http://example.com", 'description' : 'hello', 'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
         self.assertEqual(f.is_valid(), False, 'Game must have price')
         
-        post = {'title' : 'Cool title bro', 'price' : -1, 'url' : "http://example.com", 'description' : 'hello'}
+        d = {'title' : 'Cool title bro', 'price' : -1, 'url' : "http://example.com", 'description' : 'hello', 'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
         self.assertEqual(f.is_valid(), False, 'Game price must be non-negative')
         
     def test_url(self):
-        post = {'title' : 'Cool title bro', 'price' : 0, 'description' : 'hello'}
+        d = {'title' : 'Cool title bro', 'price' : 0, 'description' : 'hello', 'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
         self.assertEqual(f.is_valid(), False, 'Game must have url')
         
-        post = {'title' : 'Cool title bro', 'url' : 'invalid_url', 'price' : 0, 'description' : 'hello'}
+        d = {'title' : 'Cool title bro', 'url' : 'invalid_url', 'price' : 0, 'description' : 'hello', 'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
         self.assertEqual(f.is_valid(), False, 'Game url must be valid')
         
     def test_description(self):
-        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com"}
+        d = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
         self.assertEqual(f.is_valid(), False, 'Game description is required')
         
-        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : ''}
+        d = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : '', 'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
         self.assertEqual(f.is_valid(), False, 'Game description may not be empty')
         
     def test_img_url(self):
-        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello'}
+        d = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
         self.assertEqual(f.is_valid(), True, 'Image url is not required')
         
-        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'img_url' : 'invalid_url'}
+        d = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'img_url' : 'invalid_url', 'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
         self.assertEqual(f.is_valid(), False, 'Image url must be valid')
         
-        post = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'img_url' : None}
+        d = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'img_url' : None, 'tags[]' : ['fun']}
+        post = DummyPost(d)
         f = GameForm(post)
         self.assertEqual(f.is_valid(), True, 'Image url may be None')
+        
+    def test_tags(self):
+        d = {'title' : 'Cool title bro', 
+                          'price' : 0, 'url' : "http://example.com", 
+                          'description' : 'hello', 'img_url' : 'http://example.com',
+                          'tags[]' : []}
+        post = DummyPost(d)
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Tags must be given')
+        
+        d = {'title' : 'Cool title bro', 
+                          'price' : 0, 'url' : "http://example.com", 
+                          'description' : 'hello', 'img_url' : 'http://example.com',
+                          'tags[]' : None}
+        post = DummyPost(d)
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Tags must not be None')
+        
+        d = {'title' : 'Cool title bro', 
+                          'price' : 0, 'url' : "http://example.com", 
+                          'description' : 'hello', 'img_url' : 'http://example.com',
+                          'tags[]' : ['fun', 'or is it']}
+        post = DummyPost(d)
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Tags must not contain spaces')
+        
+        d = {'title' : 'Cool title bro', 
+                          'price' : 0, 'url' : "http://example.com", 
+                          'description' : 'hello', 'img_url' : 'http://example.com',
+                          'tags[]' : ['fun', 'right?']}
+        post = DummyPost(d)
+        f = GameForm(post)
+        self.assertEqual(f.is_valid(), False, 'Tags must only contain letters, numbers and underscores')
         
 class TestAuthView(TestCase):
     fixtures = ['groups.json', 'users.json']
@@ -560,11 +635,7 @@ class TestApi(TestCase):
     def test_filter_by_tags_all_basic_combo(self):
         tags = ['fun','please']
         self.assertEqual(filter_by_tags(self.games, tags, 'all'), [self.g1])
-        
-    def test_filter_by_tags_regex_escape(self):
-        tags = ['gam$e','tag(\d)hack']
-        self.assertEqual(filter_by_tags(self.games, tags, 'any'), [self.g3])
-        
+                
     def test_filter_by_tags_match_middle(self):
         tags = ['ga*e']
         self.assertEqual(filter_by_tags(self.games, tags, 'any'), [self.g1, self.g2, self.g3])
@@ -656,7 +727,7 @@ class TestApi(TestCase):
         url = 'http://testserver/game_api/v1/sales/'
         response = self.client.get(url)
         jsondata_1 = json.loads(response.content.decode('utf-8'))
-        url = 'http://testserver/game_api/v1/sales/id/1/id/3'
+        url = 'http://testserver/game_api/v1/sales/gameid/1/gameid/3'
         response = self.client.get(url)
         jsondata_2 = json.loads(response.content.decode('utf-8'))
         self.assertEqual(jsondata_2, jsondata_1)
@@ -664,7 +735,7 @@ class TestApi(TestCase):
     def test_api_sales_view_gameid_basic(self):
         self.assertEqual(True, self.client.login(username="dev", password="dev"))
         # this should only get the purchases of game 1
-        url = 'http://testserver/game_api/v1/sales/id/1'
+        url = 'http://testserver/game_api/v1/sales/gameid/1'
         response = self.client.get(url)
         jsondata = json.loads(response.content.decode('utf-8'))
         self.assertEqual(len(jsondata['detailed_stats']), 1)
@@ -676,7 +747,7 @@ class TestApi(TestCase):
     def test_api_sales_view_gameid_wrong_dev(self):
         self.assertEqual(True, self.client.login(username="dev", password="dev"))
         # and this should get nothing, as game 2 is by another developer
-        url = 'http://testserver/game_api/v1/sales/id/2'
+        url = 'http://testserver/game_api/v1/sales/gameid/2'
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404, "dev should not see stats for admin's sales")
     
@@ -689,7 +760,7 @@ class TestApi(TestCase):
         
     def test_api_sales_view_title_same_as_id(self):    
         self.assertEqual(True, self.client.login(username="dev", password="dev"))
-        url = 'http://testserver/game_api/v1/sales/id/1'
+        url = 'http://testserver/game_api/v1/sales/gameid/1'
         r1 = self.client.get(url)
         url = 'http://testserver/game_api/v1/sales/title/funny+game'
         r2 = self.client.get(url)
@@ -708,7 +779,7 @@ class TestApi(TestCase):
         # this should only get purchases 1 and 2 (game 1)
         url = 'http://testserver/game_api/v1/sales/startdate/2014-01-01'
         r1 = self.client.get(url)
-        url = 'http://testserver/game_api/v1/sales/id/1/id/2'
+        url = 'http://testserver/game_api/v1/sales/gameid/1/gameid/2'
         r2 = self.client.get(url)
         self.assertEqual(json.loads(r1.content.decode('utf-8')), json.loads(r2.content.decode('utf-8')))
         
@@ -717,7 +788,7 @@ class TestApi(TestCase):
         # this should only get purchase 3 (game 3)
         url = 'http://testserver/game_api/v1/sales/enddate/2013-05-06'
         r1 = self.client.get(url)
-        url = 'http://testserver/game_api/v1/sales/id/3'
+        url = 'http://testserver/game_api/v1/sales/gameid/3'
         r2 = self.client.get(url)
         self.assertEqual(r1.content, r2.content)
         

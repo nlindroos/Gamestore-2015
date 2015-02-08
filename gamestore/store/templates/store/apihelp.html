@@ -57,6 +57,22 @@
     <p>Titles and developer names may contain spaces. Instead of spaces, use plus signs (+) in the URL:</p>
     <code>/game_api/v1/games/title/my+awesome+game</code>
     <p></p>
+    
+    <p></p>
+    <p>Titles may contain special characters. In searches, one should simply omit all non-alphanumeric, non-underscore characters,
+    except the percent sign (%) and the ampersand (&), which should be replaced by the words 'percent' and 'and' respectively.<br>
+    For example, the following URL finds games titled 'Crash & burn' (but also 'Crash and burn'):
+    </p>
+    <code>/game_api/v1/games/title/crash+and+burn</code>
+    <p></p>
+    
+    <p>Unicode letters should be percent escaped in the URL (note that browsers may do this automatically).<br>
+    For example, the following URL will find games with titles ending with the letter ö:</p>
+    <code>/game_api/v1/games/title/*%C3%B6</code>
+    <p></p>
+    
+    <p>Alternatively, wildcards may also be used in all of the situations mentioned above.</p>
+    
     <h4>Wildcards</h4>
     <p>
         The asterisk (*) may be used as a wildcard for titles, developer names or tags (matching any number of unknown characters). 
@@ -127,9 +143,12 @@
     <code>/game_api/v1/sales/</code>
     <p></p>
     <p>The URL above will get all sales of the developer currently logged in</p>
-    <p>The result set can be limited by game IDs and game titles. This is done the same way as for game requests
-    (<a href="#game_requests">see above</a>).
+    <p>The result set can be limited by either game IDs or game titles. This is done the same way as for game requests
+    (<a href="#game_requests">see above</a>), except that <code>gameid</code> should be used instead of <code>id</code>.
     </p>
+    <code>/game_api/v1/sales/gameid/4</code><br>
+    <code>/game_api/v1/sales/title/shoe+lace+simulator+2000</code>
+    <p></p>
     
     <h4>Filtering by date</h4>
     <p>Sales requests can be filtered by date as well as by games:</p>

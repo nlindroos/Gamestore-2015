@@ -360,7 +360,7 @@ def dev_game_edit_view(request, game):
     
     if request.method == 'POST':
         c = {}
-        c.update(csrf(request))     
+        c.update(csrf(request))    
         f = GameForm(request.POST)
         if f.is_valid():
             g.title = f.cleaned_data['title']
@@ -368,8 +368,7 @@ def dev_game_edit_view(request, game):
             g.price = f.cleaned_data['price']
             g.description = f.cleaned_data['description']
             g.img_url=f.cleaned_data.get('img_url', None)
-            # NOTE: tags is a list input (name="tags[]")
-            g.tags = ",".join(request.POST.getlist('tags[]'))
+            g.tags = ",".join(f.cleaned_data.get('tags[]', []))
             g.save()
             c['game'] = g
             return HttpResponseRedirect('/dev')
@@ -400,8 +399,7 @@ def dev_new_game_view(request):
                      price=f.cleaned_data['price'],
                      description=f.cleaned_data['description'],
                      img_url=f.cleaned_data.get('img_url', None),
-                     tags=",".join(request.POST.getlist('tags[]')))
-            # NOTE: tags is a list input (name="tags[]")
+                     tags=",".join(f.cleaned_data('tags[]', [])))
             g.save()
             return HttpResponseRedirect('/dev')
         else:

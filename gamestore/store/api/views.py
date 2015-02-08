@@ -230,7 +230,7 @@ def api_games_view(request, id='', titles='', developers='', tags=''):
                     
     subquery1 = Q()
     for t in title_list:
-        subquery1 |= wildcard_builder(t, 'title')
+        subquery1 |= wildcard_builder(t, 'search_title')
     
     subquery2 = Q()
     for d in dev_list:
@@ -250,7 +250,7 @@ def api_games_view(request, id='', titles='', developers='', tags=''):
           
     for g in games:
         d = {'location' : 'https://{}/game_api/v1/games/{}'.format(request.get_host(), g.pk)}
-        d.update({'title' : g.title, 'description' : g.description})
+        d.update({'title' : g.title, 'search_title' : g.search_title, 'description' : g.description})
         d.update({'developer' : g.developer.username, 'price' : str(g.price), 'tags' : g.get_tags()})
         if scores:
             key = 'highscores_top_' + str(scores) 
@@ -274,13 +274,13 @@ def api_help_view(request):
 
 @login_only
 @developers_only    
-def api_dev_sales_view(request, id='', titles='', startdate='', enddate=''):
+def api_dev_sales_view(request, gameid='', titles='', startdate='', enddate=''):
     """
     RESTfull API view for Developers. Shows sales of games by this developer.
     Works otherwise similiarly as api_games_view().
     
     Args:
-        id:             string in the form '/id/id1/id/id2/.../id/idn'
+        gameid:         string in the form '/gameid/id1/gameid/id2/.../gameid/idn'
         titles:         string in the form '/title/t1/title/t2/.../title/tn'
         startdate:      string in the form YYYY-MM-DD
         enddate:        string in the form YYYY-MM-DD
@@ -290,8 +290,8 @@ def api_dev_sales_view(request, id='', titles='', startdate='', enddate=''):
     """
     id_list = []
     title_list = []
-    if id:
-        id_list = [int(x) for x in id.split('/id/') if x]
+    if gameid:
+        id_list = [int(x) for x in gameid.split('/gameid/') if x]
     if titles:
         title_list = [x.replace('+', ' ') for x in titles.split('/title/') if x]
                    
@@ -301,9 +301,9 @@ def api_dev_sales_view(request, id='', titles='', startdate='', enddate=''):
                     
     subquery1 = Q()
     for t in title_list:
-        subquery1 |= wildcard_builder(t, 'game__title')
+        subquery1 |= wildcard_builder(t, 'game__search_title')
         
-    query = (Q(payment_confirmed__exact=True) & Q(game__developer__exact=request.user) & subquery0 & subquery1)
+    query = (Q(game__developer__exact=request.user) & subquery0 & subquery1)
     if startdate:
         try:
             # django wants a timezone: ok, use utc, as we want the response to 

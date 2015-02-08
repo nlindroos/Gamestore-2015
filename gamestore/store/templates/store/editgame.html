@@ -112,13 +112,13 @@
                 {% if game %}
                 {% for t in game.get_tags %}
                     <div class="input-group">
-                        <input type="text" name="tags[]" placeholder="{{ t }}" class="form-control" value="{{ t }}" maxlength="25"></input>
+                        <input type="text" name="tags[]" placeholder="{{ t }}" class="form-control taginput" value="{{ t }}" maxlength="25"></input>
                         <span class="input-group-addon tag_remover">Remove</span>
                     </div>
                 {% endfor %}
                 {% else %}
                     <div class="input-group">
-                        <input type="text" name="tags[]" placeholder="awesome" class="form-control"></input>
+                        <input type="text" name="tags[]" placeholder="awesome" class="form-control taginput"></input>
                         <span id="delete_tag0" class="input-group-addon tag_remover">Remove</span>
                     </div>
                 {% endif %}

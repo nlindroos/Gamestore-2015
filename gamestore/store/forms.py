@@ -2,8 +2,11 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from django.contrib.auth.forms import UserCreationForm
-from django.forms.models import modelform_factory
+from django.forms import ModelForm
 from store.models import Game
+from django.forms import ValidationError
+
+import re
 
 class MyRegistrationForm(UserCreationForm):
     GROUP_CHOICES = (
@@ -33,12 +36,29 @@ class MyRegistrationForm(UserCreationForm):
     
         return user
 
-GameForm = modelform_factory(Game, fields=('title', 'url', 'price', 'description', 'img_url'))
-"""
-Form for editing games and submitting new games.
+class GameForm(ModelForm):
+    """
+    Form for editing games and submitting new games.
 
-The tags field/attribute is excluded because we need to pass tags input as an array
-(<input id="tag1" name="tags[]"/> <input id="tag2" name="tags[]"/>), 
-which django doesn't like and fails to validate the form. 
-Therefore, we need to get that input directly from request.POST (see views.py).
-"""
+    The tags attribute is an array input
+    (<input id="tag1" name="tags[]"/> <input id="tag2" name="tags[]"/>)
+    , which needs to be extracted from POST using request.POST.getlist().
+    """
+    class Meta:
+        model = Game
+        fields=['title', 'url', 'price', 'description', 'img_url']
+        
+    def __init__(self, *args, **kwargs):
+        super(GameForm, self).__init__(*args, **kwargs)
+        self.tags = args[0].getlist('tags[]') # first arg should be request.POST
+        
+    def clean(self):
+        super(GameForm, self).clean()
+        if not self.tags or not [x for x in self.tags if x]:
+            raise ValidationError('At least one tag is required')
+        for t in self.tags:
+            if not re.match(r'^[a-zA-Z0-9_]*$', t):
+                raise ValidationError('Tags may only contain letters, numbers and underscores')
+        cd = self.cleaned_data
+        cd['tags[]'] = self.tags
+        return cd
