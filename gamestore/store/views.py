@@ -171,6 +171,7 @@ def google_login_view(request):
     else:
         try:
             request.user.groups.add(Group.objects.get(name='Players'))
+            request.user.set_unusable_password()
             return HttpResponseRedirect("/mygames")
         except:
             raise Http404("Something went wrong")

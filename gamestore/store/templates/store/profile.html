@@ -1,0 +1,68 @@
+{% extends "store/base.html" %}
+
+{% load staticfiles %}
+{% block head %}
+<script src="{% static 'store/js/jquery-1.11.2.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'store/js/editgame.js' %}"></script>
+<link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/editgame.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% if p_success == True %}
+            <h2>Password changed</h2>
+            <p>Password change successful!</p>
+            <p>Please login again with your new password</p>
+            <form action="{% url 'login' %}" method="get">
+                <button class="btn btn-info" type="submit">Login</button>
+            </form>
+        {% else %}
+        <h1>Welcome to your profile, {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}!</h1>
+        <p>Here you can see your profile details and change your password. Just click "Save" when you are done!</p>
+        {% if form.errors %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }}</strong>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <form role="form" action="{% url 'profile' %}" method="post"> {% csrf_token %}
+            <div class="form-group">
+                <label>Username:</label>
+                <p>{{ user.username }}</p>
+            </div>
+            <div class="form-group">
+                <label>First name:</label>
+                <p>{{ user.first_name }}</p>
+            </div>
+            <div class="form-group">
+                <label>Last name:</label>
+                <p>{{ user.last_name }}</p>
+            </div>
+            <div class="form-group">
+                <label for="email">Email address:</label>
+                <p>{{ user.email }}</p>
+            </div>
+            {% if user.has_usable_password %}
+            <div class="form-group">
+                <label for="pwd">Password:</label>
+                <input type="password" class="form-control" name="password1" id="password1">
+            </div>
+            <div class="form-group">
+                <label for="pwd">Repeat password:</label>
+                <input type="password" class="form-control" name="password2" id="password2">
+            </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary" value="Save">Save</button>
+        </form>
+        <br>
+        <form action="{% url 'allgames' %}" method="get">
+            <button class="btn btn-default" type="submit">Go back to games</button>
+        </form>
+        <br>
+        {% if p_success == False %}
+            <p>Password change not successful</p>
+        {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}
