@@ -357,10 +357,11 @@ def profile_view(request):
     Requires that the user is logged in.
     """
     if request.method=='POST':
+        old_password = request.POST.get('old_password', '')
         password1 = request.POST.get('password1', '')
         password2 = request.POST.get('password2', '')
         p_success = None
-        if ((password1 != '') and (password1 == password2)):
+        if ((password1 != '') and (password1 == password2) and (request.user.check_password(old_password))):
             request.user.set_password(password1)
             request.user.save()
             p_success = True
