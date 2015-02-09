@@ -31,7 +31,7 @@ class Game(models.Model):
     price = models.DecimalField(max_digits=5, decimal_places=2, null=False, default=0.00, validators=[validate_price])
     tags = models.TextField(null=False, default='', blank=True)
     description = models.TextField(null=False, default='', blank=False)
-    img_url = models.URLField(null=True, blank=True, default="store/images/russia.jpeg")
+    img_url = models.URLField(null=True, blank=True, default="")
     
     def __str__(self):
         return '<Game object (id: {}, title: {}, developer: {})>'.format(self.pk, self.title, self.developer)
