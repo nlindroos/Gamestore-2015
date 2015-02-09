@@ -144,7 +144,7 @@ def signup_view(request):
             user.is_active = False  # Disables user account until it is validated by e-mail
             signer = Signer()
             signed_value = signer.sign(user.pk) # signer used to make the individual URL harder to guess
-            send_mail('Confirm registration', 'Go to this URL to confirm your account: http://localhost:8000/signup_success/'+str(signed_value), 'admin@gamestore.com',
+            send_mail('Confirm registration', 'Go to this URL to confirm your account: '+'http://'+request.get_host()+'/signup_success/'+str(signed_value), 'admin@gamestore.com',
     [user.email], fail_silently=False)
             return render(request, 'store/confirm_registration.html')
     else:
@@ -272,9 +272,9 @@ def checkout_view(request):
         dictator['pid'] = pid
         dictator['sid'] = sid
         dictator['price'] = amount
-        dictator['success_url'] = 'http://127.0.0.1:8000/confirm_order/'
-        dictator['cancel_url'] = 'http://127.0.0.1:8000/cancel_order/'
-        dictator['error_url'] = 'http://127.0.0.1:8000/denied'
+        dictator['success_url'] = 'http://{}/confirm_order/'.format(request.get_host())
+        dictator['cancel_url'] = 'http://{}/cancel_order/'.format(request.get_host())
+        dictator['error_url'] = 'http://{}/denied'.format(request.get_host())
         checksumstr = "pid=%s&sid=%s&amount=%s&token=%s"%(pid, sid, amount, secret_key)
         m = md5(checksumstr.encode("ascii"))
         checksum = m.hexdigest()
