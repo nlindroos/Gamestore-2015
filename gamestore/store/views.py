@@ -97,7 +97,7 @@ def login_view(request):
     Redirect to /auth is done by form action attribute (see login.html).
     """
     if request.user.is_authenticated():
-        return HttpResponseRedirect('/loggedin')
+        return HttpResponseRedirect('/mygames')
     else:
         c = {}
         c.update(csrf(request))
@@ -124,6 +124,9 @@ def auth_view(request):
     return HttpResponseRedirect('/login')
     
 def logout_view(request):
+    """
+    View for logging out.
+    """
     auth.logout(request)
     return HttpResponseRedirect('/login')
     
@@ -132,10 +135,10 @@ def signup_view(request):
     View that allows creating a new user.
     Makes use of a tweaked version of Django's registration form.
     
-    Sends 
+    Sends a confirmation mail to the user for email validation.
     """
     if request.user.is_authenticated():
-        return HttpResponseRedirect('/loggedin')
+        return HttpResponseRedirect('/mygames')
     if request.method == 'POST':
         form = MyRegistrationForm(request.POST)
         if form.is_valid():
@@ -153,6 +156,9 @@ def signup_view(request):
     return render_to_response('store/signup.html', args)
 
 def signup_success_view(request, signed_value):
+    """
+    Activates a user when they open this view (which they received by mail).
+    """
     try:
         signer = Signer()
         user_pk = signer.unsign(signed_value)
@@ -160,7 +166,7 @@ def signup_success_view(request, signed_value):
         user.is_active = True
         return render_to_response('store/signup_success.html')
     except:
-        return HttpResponse("Registration failed :(")
+        return HttpResponseRedirect("/denied")
     
 def google_login_view(request):
     """
@@ -293,6 +299,8 @@ def cancel_order_view(request):
     pid = request.GET.get('pid', '')
     ref = request.GET.get('ref', '')
     checksum = request.GET.get('checksum', '')
+    if ((pid=='') or (ref=='') or (checksum=='')):
+        return HttpResponseRedirect("/denied")
     try:
         p = Purchase.objects.get(pk=pid)
         p.delete()
@@ -325,7 +333,7 @@ def confirm_order_view(request):
         except:
             return HttpResponse("Something went wrong with saving the Purchase and OwnedGame!")
 
-    if security_string == checksum:
+    if (security_string == checksum):
         try:
             p = Purchase.objects.get(pk=pid)
             p.payment_confirmed = True
