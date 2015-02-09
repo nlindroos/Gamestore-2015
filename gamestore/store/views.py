@@ -147,8 +147,7 @@ def signup_view(request):
             send_mail('Confirm registration', 'Go to this URL to confirm your account: '+'http://'+request.get_host()+'/signup_success/'+str(signed_value), 'admin@gamestore.com',
     [user.email], fail_silently=False)
             return render(request, 'store/confirm_registration.html')
-    else:
-        return render(request, 'store/signup.html', {'form' : MyRegistrationForm()})
+    return render(request, 'store/signup.html', {'form' : MyRegistrationForm()})
 
 def signup_success_view(request, signed_value):
     """
@@ -377,6 +376,28 @@ def profile_view(request):
 
 @login_only
 @developers_only
+def dev_delete_game_view(request, game):
+    """
+    View that lets a developer delete one of his/her previously submitted games.
+
+    User must be logged in as the developer who originally submitted the game.
+
+    Args:
+        game: primary key of the Game object
+    """
+    if request.method == 'POST':
+        try:
+            g = Game.objects.get(developer=request.user, pk=game)
+        except:
+            raise Http404('')
+        g.delete()
+        return HttpResponseRedirect('/dev')
+    else:
+        # just go to dev/, don't do anything
+        return HttpResponseRedirect('/dev')
+
+@login_only
+@developers_only
 def dev_game_edit_view(request, game):
     """
     View that lets a developer edit one of his/her previously submitted games.
@@ -394,27 +415,21 @@ def dev_game_edit_view(request, game):
     if request.method == 'POST':
         c = {}
         c.update(csrf(request))
-        if "delete" in request.POST:
-            # Django default is cascading, no need for separate recursion
-            g.delete()
+        f = GameForm(request.POST)
+        if f.is_valid():
+            g.title = f.cleaned_data['title']
+            g.url = f.cleaned_data['url']
+            g.price = f.cleaned_data['price']
+            g.description = f.cleaned_data['description']
+            g.img_url=f.cleaned_data.get('img_url', None)
+            g.tags = ",".join(f.cleaned_data.get('tags[]', []))
+            g.save()
+            c['game'] = g
             return HttpResponseRedirect('/dev')
-
-        else:    
-            f = GameForm(request.POST)
-            if f.is_valid():
-                g.title = f.cleaned_data['title']
-                g.url = f.cleaned_data['url']
-                g.price = f.cleaned_data['price']
-                g.description = f.cleaned_data['description']
-                g.img_url=f.cleaned_data.get('img_url', None)
-                g.tags = ",".join(f.cleaned_data.get('tags[]', []))
-                g.save()
-                c['game'] = g
-                return HttpResponseRedirect('/dev')
-            else:
-                c['game'] = g
-                c['form'] = f
-                return render(request, 'store/editgame.html', c)
+        else:
+            c['game'] = g
+            c['form'] = f
+            return render(request, 'store/editgame.html', c)
     return render(request, 'store/editgame.html', {'game' : g})
     
 @login_only

@@ -464,7 +464,7 @@ class TestSignupView(TestCase):
         self.assertEqual(True, self.client.login(username="dev", password="dev"))
         response = self.client.get('/signup')
         self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
-        self.assertEqual(response.url, 'http://testserver/loggedin', "Response url should be loggedin")
+        self.assertEqual(response.url, 'http://testserver/mygames', "Response url should be mygames")
         
     def test_already_logged_in_POST(self):
         # test to make sure that logged in users can't create new user with POST
@@ -472,7 +472,7 @@ class TestSignupView(TestCase):
         response = self.client.post('/signup', self.new_user_data)
         self.assertRaises(User.DoesNotExist, User.objects.get, username='thebuilder')
         self.assertEqual(response.status_code, 302, "Should redirect") #because of redirect
-        self.assertEqual(response.url, 'http://testserver/loggedin', "Response url should be loggedin")
+        self.assertEqual(response.url, 'http://testserver/mygames', "Response url should be mygames")
         
 class TestDevView(TestCase):
     
@@ -480,8 +480,44 @@ class TestDevView(TestCase):
         self.assertEqual(developer_view.login_only, True)
         self.assertEqual(developer_view.developers_only, True)
         
-
-
+class TestDevDeleteView(TestCase):
+    fixtures = ['groups.json', 'users.json']
+    
+    def setUp(self):
+        self.dev = User.objects.get(pk=4)
+        self.admin = User.objects.get(pk=1)
+        self.client = Client()
+        
+        # making some test games
+        self.g1 = Game(developer=self.dev, title='Funny Game', tags='fun,game,buy,please')
+        self.g2 = Game(developer=self.admin, title='very funny game', tags='fun,game,cheap')
+        self.g1.save()
+        self.g2.save()
+    
+    def test_decorators(self):
+        self.assertEqual(dev_delete_game_view.login_only, True)
+        self.assertEqual(dev_delete_game_view.developers_only, True)
+        
+    def test_delete_other_devs_game(self):
+        pk = self.g2.pk
+        self.assertEqual(True, self.client.login(username="dev", password="dev"))
+        response = self.client.post('http://testserver/dev/deletegame/' + str(pk))
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(1, len(Game.objects.filter(pk=pk)))
+        
+    def test_get_does_nothing(self):
+        pk = self.g1.pk
+        self.assertEqual(True, self.client.login(username="dev", password="dev"))
+        response = self.client.get('http://testserver/dev/deletegame/' + str(pk))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(1, len(Game.objects.filter(pk=pk)))
+        
+    def test_delete_own_game(self):
+        pk = self.g1.pk
+        self.assertEqual(True, self.client.login(username="dev", password="dev"))
+        response = self.client.post('http://testserver/dev/deletegame/' + str(pk))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(0, len(Game.objects.filter(pk=pk)))
 
 
         

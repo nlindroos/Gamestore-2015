@@ -20,6 +20,7 @@ urlpatterns = patterns('',
     url(r'^dev/$', developer_view, name="dev_home"), # NOTE: must use terminating slash for relative urls to work
     url(r'^dev/newgame/?$', dev_new_game_view),
     url(r'^dev/editgame/(\d+)$', dev_game_edit_view),
+    url(r'^dev/deletegame/(\d+)$', dev_delete_game_view, name="dev_delete_game"),
     url(r'^denied/?$', denied_view, name="denied"),
     url(r'^mygames/(\d+)/save$', gamestate_ajax_view),
     url(r'^mygames/(\d+)/scores$', gamescore_ajax_view),
