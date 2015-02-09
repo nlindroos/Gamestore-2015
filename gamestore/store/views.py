@@ -122,9 +122,6 @@ def auth_view(request):
         elif is_developer(user):
             return HttpResponseRedirect('/dev')
     return HttpResponseRedirect('/login')
-
-def loggedin(request):
-    return render_to_response('store/loggedin.html')
     
 def logout_view(request):
     auth.logout(request)
@@ -133,6 +130,9 @@ def logout_view(request):
 def signup_view(request):
     """
     View that allows creating a new user.
+    Makes use of a tweaked version of Django's registration form.
+    
+    Sends 
     """
     if request.user.is_authenticated():
         return HttpResponseRedirect('/loggedin')
@@ -145,7 +145,7 @@ def signup_view(request):
             signed_value = signer.sign(user.pk) # signer used to make the individual URL harder to guess
             send_mail('Confirm registration', 'Go to this URL to confirm your account: http://localhost:8000/signup_success/'+str(signed_value), 'admin@gamestore.com',
     [user.email], fail_silently=False)
-            return HttpResponse("Confirm your registration via e-mail. Please check your e-mail inbox!")
+            return render(request, 'store/confirm_registration.html')
 
     args = {}
     args.update(csrf(request))

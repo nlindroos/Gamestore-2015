@@ -5,7 +5,6 @@ urlpatterns = patterns('',
 
     url(r'^login/?$', login_view, name="login"), #'django.contrib.auth.views.login', {'template_name': 'store/login.html'}),
     url(r'^auth/?$', auth_view),
-    url(r'^loggedin/?$', loggedin),
     url(r'^logout/?$', logout_view, name="logout"),
     url(r'^signup/?$', signup_view, name="signup"),
     url(r'^signup_success/(\S+)$', signup_success_view),
