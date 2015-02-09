@@ -20,6 +20,14 @@ function add_tag() {
     input.focus();
 }
 
+function delete_game(e) {
+    e.preventDefault();
+    if (confirm("Are you sure you want to delete this game?")) {
+        $("#deleteForm").submit();
+    }
+    return;
+}
+
 $(document).ready( function() {
     "use strict";
     
@@ -28,4 +36,7 @@ $(document).ready( function() {
         $(this).parent().remove();
     });
     $('.taginput').on('input', tag_input);
+    $("#deleteGame").click(function(e) {
+        delete_game(e);
+    });
 });

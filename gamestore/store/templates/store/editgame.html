@@ -11,6 +11,15 @@
     <div class="container">
         {% if game.pk %}
         <h1>Edit game: {{ game.title }}</h1>
+        <form method="post" id="deleteForm"> {% csrf_token %}
+            <div class="form-group">
+                <div class="input-group">
+                    <input type="hidden" value="{{ game.pk }}" name="delete">
+                    <!-- TODO: add condition for if adding game -->
+                    <button type="submit" id="deleteGame">Delete game</button>
+                </div>
+            </div>
+        </form>
         {% else %}
         <h1>Submit new game</h1>
         {% endif %}
@@ -125,7 +134,8 @@
             </div>
             <button id="addtag" type="button">Add tag</button><!-- type="button" must be used so this doesn't submit the form-->
             <p></p>
-            <input type="submit" value="Submit game"></input>
+            <input type="submit" value="Submit game" name="delete"></input>
         </form>
+
     </div>
 {% endblock %}
