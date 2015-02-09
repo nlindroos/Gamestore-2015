@@ -99,9 +99,7 @@ def login_view(request):
     if request.user.is_authenticated():
         return HttpResponseRedirect('/mygames')
     else:
-        c = {}
-        c.update(csrf(request))
-        return render_to_response('store/login.html', c)
+        return render(request, 'store/login.html')
     
 def auth_view(request):
     """
@@ -149,11 +147,8 @@ def signup_view(request):
             send_mail('Confirm registration', 'Go to this URL to confirm your account: http://localhost:8000/signup_success/'+str(signed_value), 'admin@gamestore.com',
     [user.email], fail_silently=False)
             return render(request, 'store/confirm_registration.html')
-
-    args = {}
-    args.update(csrf(request))
-    args['form'] = MyRegistrationForm()
-    return render_to_response('store/signup.html', args)
+    else:
+        return render(request, 'store/signup.html', {'form' : MyRegistrationForm()})
 
 def signup_success_view(request, signed_value):
     """
@@ -164,7 +159,7 @@ def signup_success_view(request, signed_value):
         user_pk = signer.unsign(signed_value)
         user = User.objects.get(pk=user_pk)
         user.is_active = True
-        return render_to_response('store/signup_success.html')
+        return render(request, 'store/signup_success.html')
     except:
         return HttpResponseRedirect("/denied")
     
