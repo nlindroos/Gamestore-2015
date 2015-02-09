@@ -437,7 +437,7 @@ def dev_new_game_view(request):
                      price=f.cleaned_data['price'],
                      description=f.cleaned_data['description'],
                      img_url=f.cleaned_data.get('img_url', None),
-                     tags=",".join(f.cleaned_data('tags[]', [])))
+                     tags=",".join(f.cleaned_data.get('tags[]', [])))
             g.save()
             return HttpResponseRedirect('/dev')
         else:

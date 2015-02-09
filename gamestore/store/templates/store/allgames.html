@@ -42,7 +42,7 @@
                     {% if g.img_url %}
                         <a href="{% url 'gamedetailed' g.pk %}"><img src="{{ g.img_url }}" class="img-thumbnail" alt="picture of game"></img></a>
                     {% else %}
-                        <a href="{% url 'gamedetailed' g.pk %}"><img src="{% static 'store/images/russia.jpeg' %}" class="img-thumbnail" alt="picture of game"></img></a>
+                        <a href="{% url 'gamedetailed' g.pk %}"><img src="{% static 'store/images/default.jpeg' %}" class="img-thumbnail" alt="picture of game"></img></a>
                     {% endif %}
                 </div>
                 <div class="col-md-5">
