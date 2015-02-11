@@ -22,7 +22,7 @@
         </div>
         <button type="submit" value="login" class="btn btn-default">Log in</button>
     </form>
-    {% comment TODO: Uncomment this row to enable Google Login %}
+    {% comment %}
     <br>
     <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}">Login with Google (as a player)</a>
     <br>

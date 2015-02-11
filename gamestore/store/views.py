@@ -171,12 +171,11 @@ def google_login_view(request):
     """
     View that assigns new Google logins to group "Players"
     """
-    if request.user.is_authenticated() and is_player(request.user):
+    if is_player(request.user) or is_developer(request.user):
         return HttpResponseRedirect("/mygames")
     else:
         try:
             request.user.groups.add(Group.objects.get(name='Players'))
-            request.user.set_unusable_password()
             request.user.save()
             return HttpResponseRedirect("/mygames")
         except:
