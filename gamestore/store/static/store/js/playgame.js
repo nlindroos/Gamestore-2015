@@ -5,7 +5,7 @@ $(document).ready( function() {
     /////////////////////////////////////
     function getCookie(name) {
         var cookieValue = null;
-        if (document.cookie && document.cookie != '') {
+        if (document.cookie && document.cookie !== '') {
             var cookies = document.cookie.split(';');
             for (var i = 0; i < cookies.length; i++) {
                 var cookie = jQuery.trim(cookies[i]);
@@ -51,8 +51,9 @@ $(document).ready( function() {
     
     //ok, now this is the relevant part:
     window.addEventListener("message", function(event) {
-        if ($("#gameframe").attr('src').indexOf(event.origin) !== 0)
+        if ($("#gameframe").attr('src').indexOf(event.origin) !== 0) {
             return;
+        }
         
         if (event.data.messageType === "SAVE") {
             //save the gamestate
@@ -91,7 +92,7 @@ $(document).ready( function() {
                    "messageType" : "MESSAGE",
                     "message" : "Loading game state failed."
                 }, event.origin);
-            });;
+            });
         }
         else if (event.data.messageType === "SCORE") {
             //save a score
