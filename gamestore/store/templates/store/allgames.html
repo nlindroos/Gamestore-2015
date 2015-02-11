@@ -3,6 +3,7 @@
 {% load staticfiles %}
 
 {% block head %}
+    <title>All games</title>
     <script src="{% static 'store/js/allgames_filter.js' %}"></script>
     <link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/allgames.css' %}">
 {% endblock %}
@@ -40,9 +41,9 @@
             <div class="row">
                 <div class="col-md-2">
                     {% if g.img_url %}
-                        <a href="{% url 'gamedetailed' g.pk %}"><img src="{{ g.img_url }}" class="img-thumbnail" alt="picture of game"></img></a>
+                        <a href="{% url 'gamedetailed' g.pk %}"><img src="{{ g.img_url }}" class="img-thumbnail" alt="picture of game"></a>
                     {% else %}
-                        <a href="{% url 'gamedetailed' g.pk %}"><img src="{% static 'store/images/default.jpeg' %}" class="img-thumbnail" alt="picture of game"></img></a>
+                        <a href="{% url 'gamedetailed' g.pk %}"><img src="{% static 'store/images/default.jpeg' %}" class="img-thumbnail" alt="picture of game"></a>
                     {% endif %}
                 </div>
                 <div class="col-md-5">

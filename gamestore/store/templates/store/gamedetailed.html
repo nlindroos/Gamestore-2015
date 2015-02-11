@@ -2,6 +2,7 @@
 {% load staticfiles %}
 
 {% block head %}
+    <title>Game detailed</title>
     <link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/gamedetailed.css' %}">
     <script src="{% static 'store/js/gamedetailed.js' %}"></script>
 {% endblock %}
@@ -13,9 +14,9 @@
         <div class="row jumbotron">
             <div class="col-md-4">
                 {% if g.img_url %}
-                <img src="{{ g.img_url }}" alt="picture of game" class="img-thumbnail"></img>
+                <img src="{{ g.img_url }}" alt="picture of game" class="img-thumbnail">
                 {% else %}
-                <img src="{% static 'store/images/default.jpeg' %}" alt="picture of game" class="img-thumbnail"></img>
+                <img src="{% static 'store/images/default.jpeg' %}" alt="picture of game" class="img-thumbnail">
                 {% endif %}
             </div>
             <div class="col-md-5">

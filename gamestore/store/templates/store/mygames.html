@@ -1,6 +1,7 @@
 {% extends "store/base.html" %}
 {% load staticfiles %}
 {% block head %}
+    <title>My games</title>
     <link rel="stylesheet" type="text/css" media="screen" href="{% static 'store/css/mygames.css' %}">
 {% endblock %}
 
@@ -12,9 +13,9 @@
             <div class="row">
                 <div class="col-md-2">
                     {% if g.img_url %}
-                    <a href="{% url 'gamedetailed' g.pk %}"><img src="{{ g.img_url }}" alt="picture of game" class="img-thumbnail"></img></a>
+                    <a href="{% url 'gamedetailed' g.pk %}"><img src="{{ g.img_url }}" alt="picture of game" class="img-thumbnail"></a>
                     {% else %}
-                    <a href="{% url 'gamedetailed' g.pk %}"><img src="{% static 'store/images/default.jpeg' %}" alt="picture of game" class="img-thumbnail"></img></a>
+                    <a href="{% url 'gamedetailed' g.pk %}"><img src="{% static 'store/images/default.jpeg' %}" alt="picture of game" class="img-thumbnail"></a>
                     {% endif %}
                 </div>
                 <div class="col-md-5">
