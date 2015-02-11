@@ -2,9 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from django.contrib.auth.forms import UserCreationForm
-from django.forms import ModelForm
 from store.models import Game
-from django.forms import ValidationError
+from django.forms import ValidationError, Form, ModelForm, EmailField, CharField
 
 import re
 
@@ -48,9 +47,10 @@ class GameForm(ModelForm):
         model = Game
         fields=['title', 'url', 'price', 'description', 'img_url']
         
-    def __init__(self, *args, **kwargs):
+    def __init__(self, user, *args, **kwargs):
         super(GameForm, self).__init__(*args, **kwargs)
         self.tags = args[0].getlist('tags[]') # first arg should be request.POST
+        self.user = user
         
     def clean(self):
         super(GameForm, self).clean()
@@ -62,3 +62,59 @@ class GameForm(ModelForm):
         cd = self.cleaned_data
         cd['tags[]'] = self.tags
         return cd
+        
+    def save(self):
+        g = super(GameForm, self).save(commit=False)
+        g.tags = ",".join(self.cleaned_data.get('tags[]', []))
+        g.developer = self.user # make sure in views.py that only the same dev can access
+        g.save()
+        return g
+        
+        
+class ProfileForm(Form):
+    """
+    Form that lets the user change their email, first name and last name.
+    """
+    first_name = CharField()
+    last_name = CharField()
+    email = EmailField()
+    
+    def __init__(self, user, *args, **kwargs):
+        super(ProfileForm, self).__init__(*args, **kwargs)
+        self.user = user
+        
+    def save(self):
+        self.user.email = self.cleaned_data.get('email')
+        self.user.first_name = self.cleaned_data.get('first_name')
+        self.user.last_name = self.cleaned_data.get('last_name')
+        self.user.save()
+        return self.user
+    
+class PasswordForm(Form):
+    """
+    Form that lets the user change their password.
+    """
+    old_password = CharField(min_length=1) # don't give a long minimum length to old passwords
+    password1 = CharField(min_length=8)
+    password2 = CharField(min_length=8)
+    
+    def __init__(self, user, *args, **kwargs):
+        super(PasswordForm, self).__init__(*args, **kwargs)
+        self.user = user
+    
+    def clean(self):
+        super(PasswordForm, self).clean()
+        if self.cleaned_data.get('password1') != self.cleaned_data.get('password2'):
+            error = ValidationError('Passwords do not match')
+            self.add_error('password1', error)
+            raise error
+        if not self.user.check_password(self.cleaned_data.get('old_password', '')):
+            error = ValidationError('Old password is incorrect')
+            self.add_error('old_password', error)
+            raise error
+            
+    def save(self):
+        self.user.set_password(self.cleaned_data.get('password1'))
+        self.user.save()
+        return self.user
+        

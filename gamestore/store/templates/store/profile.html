@@ -18,55 +18,77 @@
             </form>
         {% else %}
         <h1>Welcome to your profile, {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}!</h1>
-        <p>Here you can see your profile details and change your password. Just click "Save" when you are done!</p>
-        {% if form.errors %}
-            {% for error in form.non_field_errors %}
-                <div class="alert alert-danger">
-                    <strong>{{ error|escape }}</strong>
-                </div>
-            {% endfor %}
-        {% endif %}
+        <p>Here you can see your profile details and change your password. Just click "Save" when you are done!</p>      
+        <h3>Basic settings</h3>
         <form role="form" action="{% url 'profile' %}" method="post"> {% csrf_token %}
             <div class="form-group">
                 <label>Username:</label>
-                <p>{{ user.username }}</p>
+                <span>{{ user.username }}</span>
             </div>
             <div class="form-group">
-                <label>First name:</label>
-                <p>{{ user.first_name }}</p>
+                <label for="first_name">Last name:</label>
+                {% for error in form.first_name.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+                <input type="text" id="first_name" class="form-control" name="first_name" value="{{ user.first_name }}" placeholder="{{ user.first_name }}">
             </div>
             <div class="form-group">
-                <label>Last name:</label>
-                <p>{{ user.last_name }}</p>
+                <label for="last_name">Last name:</label>
+                {% for error in form.last_name.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+                <input type="text" id="last_name" class="form-control" name="last_name" value="{{ user.last_name }}" placeholder="{{ user.last_name }}">
             </div>
             <div class="form-group">
                 <label for="email">Email address:</label>
-                <p>{{ user.email }}</p>
+                {% for error in form.email.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+                <input type="email" id="email" class="form-control" name="email" value="{{ user.email }}" placeholder="{{ user.email }}">
             </div>
-            {% if user.has_usable_password %}
+            <button type="submit" class="btn btn-primary">Save changes</button>
+        </form>
+        {% if user.has_usable_password %}
+        <h3 id="password_settings">Password settings</h3>
+        <form role="form" action="{% url 'change_password' %}#password_settings" method="post"> {% csrf_token %}
             <div class="form-group">
-                <label for="pwd">Old password:</label>
+                {% if pw_changed %}
+                <p class="alert alert-success">Password changed succesfully</p>
+                {% endif %}
+                <label for="old_password">Old password:</label>
+                {% for error in form.old_password.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
                 <input type="password" class="form-control" name="old_password" id="old_password">
             </div>
             <div class="form-group">
-                <label for="pwd">Password:</label>
+                <label for="password1">Password:</label>
+                {% for error in form.password1.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
                 <input type="password" class="form-control" name="password1" id="password1">
             </div>
             <div class="form-group">
-                <label for="pwd">Repeat password:</label>
+                <label for="password2">Repeat password:</label>
                 <input type="password" class="form-control" name="password2" id="password2">
             </div>
-            {% endif %}
-            <button type="submit" class="btn btn-primary" value="Save">Save</button>
+            <button type="submit" class="btn btn-primary">Change password</button>
         </form>
+        {% endif %}
         <br>
         <form action="{% url 'allgames' %}" method="get">
             <button class="btn btn-default" type="submit">Go back to games</button>
         </form>
-        <br>
-        {% if p_success == False %}
-            <p>Password change not successful</p>
-        {% endif %}
         {% endif %}
     </div>
 {% endblock %}

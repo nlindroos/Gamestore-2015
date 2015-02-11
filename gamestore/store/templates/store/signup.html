@@ -15,8 +15,16 @@
                     {{ field.label }}
                 </div>
                 <div class="col-xs-12 col-sm-8 col-sm-offset-3">
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p class="alert alert-danger">
+                                <strong>{{ error|escape }}</strong>
+                            </p>
+                        {% endfor %}
+                    {% endif %}
                     {{ field }}
-                </div><br /><br /><br />
+                </div>
+                <br /><br /><br />
             {% endfor %}
             <div class="col-xs-3 col-sm-offset-5"><input type="submit" value="Register"/>
         </form>

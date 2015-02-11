@@ -234,11 +234,95 @@ class TestDecorators(TestCase):
         response = decorated(self.fake_request)
         self.assertEqual(response.status_code, 403)
         
+class TestPasswordForm(TestCase):
+    """
+    Tests PasswordForm validation and save.
+    This form is used in profile_view()
+    """
+    fixtures = ['groups.json', 'users.json']
+    
+    def test_valid_form(self):
+        d = {'password1' : 'hello123', 'password2' : 'hello123', 'old_password' : 'player'}
+        f = PasswordForm(User.objects.get(username='player'), d)
+        v = f.is_valid()
+        self.assertEqual(v, True, 'This form should be valid')
+        
+    def test_invalid_old_pass(self):
+        d = {'password1' : 'hello123', 'password2' : 'hello123', 'old_password' : 'oops'}
+        f = PasswordForm(User.objects.get(username='player'), d)
+        v = f.is_valid()
+        self.assertEqual(v, False, 'This form should be invalid')
+        
+    def test_no_old_pass_given(self):
+        d = {'password1' : 'hello123', 'password2' : 'hello123', 'old_password' : ''}
+        f = PasswordForm(User.objects.get(username='player'), d)
+        v = f.is_valid()
+        self.assertEqual(v, False, 'This form should be invalid')
+        
+    def test_new_password_mismatch(self):
+        d = {'password1' : 'hello123', 'password2' : 'goodbye1', 'old_password' : 'player'}
+        f = PasswordForm(User.objects.get(username='player'), d)
+        v = f.is_valid()
+        self.assertEqual(v, False, 'This form should be invalid')
+        
+    def test_new_password_too_short(self):
+        d = {'password1' : 'hello', 'password2' : 'hello', 'old_password' : 'player'}
+        f = PasswordForm(User.objects.get(username='player'), d)
+        v = f.is_valid()
+        self.assertEqual(v, False, 'This form should be invalid')
+            
+    def test_save(self):
+        d = {'password1' : 'hello123', 'password2' : 'hello123', 'old_password' : 'player'}
+        f = PasswordForm(User.objects.get(username='player'), d)
+        v = f.is_valid()
+        self.assertEqual(v, True, 'This form should be valid for the rest of the test to make sense')
+        f.save()
+        p = User.objects.get(username='player')
+        self.assertEqual(True, p.check_password('hello123'))
+        
+class TestProfileForm(TestCase):
+    """
+    Tests ProfileForm validation and save.
+    This form is used in profile_view()
+    """
+    fixtures = ['groups.json', 'users.json']
+    
+    def test_valid_form(self):
+        d = {'first_name' : 'joe', 'last_name' : 'johnson', 'email' : 'mail@example.com'}
+        f = ProfileForm(User.objects.get(username='player'), d)
+        v = f.is_valid()
+        self.assertEqual(v, True, 'This form should be valid')        
+
+    def test_invalid_email(self):
+        d = {'first_name' : 'joe', 'last_name' : 'johnson', 'email' : 'mail.example.com'}
+        f = ProfileForm(User.objects.get(username='player'), d)
+        v = f.is_valid()
+        self.assertEqual(v, False, 'This form should be valid')
+        
+    def test_no_email(self):
+        d = {'first_name' : 'joe', 'last_name' : 'johnson', 'email' : ''}
+        f = ProfileForm(User.objects.get(username='player'), d)
+        v = f.is_valid()
+        self.assertEqual(v, False, 'This form should be valid')
+        
+    def test_save(self):
+        d = {'first_name' : 'joe', 'last_name' : 'johnson', 'email' : 'joe.johnson@example.com'}
+        f = ProfileForm(User.objects.get(username='player'), d)
+        v = f.is_valid()
+        self.assertEqual(v, True, 'This form should be valid for the rest of the test to make sense')
+        f.save()
+        p = User.objects.get(username='player')
+        self.assertEqual('joe.johnson@example.com', p.email)
+        self.assertEqual('joe', p.first_name)
+        self.assertEqual('johnson', p.last_name)
+
+        
 class TestGameForm(TestCase):
     """
     Tests GameForm validation.
     This form is used in /dev edit.  
     """
+    fixtures = ['groups.json', 'users.json']
 
     def test_valid_form(self):
         d = {'title' : 'Cool title bro', 
@@ -246,7 +330,7 @@ class TestGameForm(TestCase):
                           'description' : 'hello', 'img_url' : 'http://example.com/',
                           'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         v = f.is_valid()
         self.assertEqual(v, True, 'This form should be valid')
         self.assertEqual(d, f.cleaned_data)
@@ -254,61 +338,61 @@ class TestGameForm(TestCase):
     def test_title(self):
         d = {'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Game must have title')
         
         d = {'title' : '', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Game title cannot be empty')
         
     def test_price(self):
         d = {'title' : 'Cool title bro', 'url' : "http://example.com", 'description' : 'hello', 'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Game must have price')
         
         d = {'title' : 'Cool title bro', 'price' : -1, 'url' : "http://example.com", 'description' : 'hello', 'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Game price must be non-negative')
         
     def test_url(self):
         d = {'title' : 'Cool title bro', 'price' : 0, 'description' : 'hello', 'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Game must have url')
         
         d = {'title' : 'Cool title bro', 'url' : 'invalid_url', 'price' : 0, 'description' : 'hello', 'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Game url must be valid')
         
     def test_description(self):
         d = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Game description is required')
         
         d = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : '', 'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Game description may not be empty')
         
     def test_img_url(self):
         d = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), True, 'Image url is not required')
         
         d = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'img_url' : 'invalid_url', 'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Image url must be valid')
         
         d = {'title' : 'Cool title bro', 'price' : 0, 'url' : "http://example.com", 'description' : 'hello', 'img_url' : None, 'tags[]' : ['fun']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), True, 'Image url may be None')
         
     def test_tags(self):
@@ -317,7 +401,7 @@ class TestGameForm(TestCase):
                           'description' : 'hello', 'img_url' : 'http://example.com',
                           'tags[]' : []}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Tags must be given')
         
         d = {'title' : 'Cool title bro', 
@@ -325,7 +409,7 @@ class TestGameForm(TestCase):
                           'description' : 'hello', 'img_url' : 'http://example.com',
                           'tags[]' : None}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Tags must not be None')
         
         d = {'title' : 'Cool title bro', 
@@ -333,7 +417,7 @@ class TestGameForm(TestCase):
                           'description' : 'hello', 'img_url' : 'http://example.com',
                           'tags[]' : ['fun', 'or is it']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Tags must not contain spaces')
         
         d = {'title' : 'Cool title bro', 
@@ -341,8 +425,59 @@ class TestGameForm(TestCase):
                           'description' : 'hello', 'img_url' : 'http://example.com',
                           'tags[]' : ['fun', 'right?']}
         post = DummyPost(d)
-        f = GameForm(post)
+        f = GameForm(None, post)
         self.assertEqual(f.is_valid(), False, 'Tags must only contain letters, numbers and underscores')
+        
+        
+    def test_save_new_game(self):
+        dev = User.objects.get(pk=4)
+        
+        # making some test games
+        g1 = Game(developer=dev, title='Funny Game', tags='fun,game,buy,please')
+        g2 = Game(developer=dev, title='very funny game', tags='fun,game,cheap')
+        g1.save()
+        g2.save()
+        
+        l1 = Game.objects.all().count()
+        d = {'title' : 'Cool title bro', 
+                          'price' : Decimal(0), 'url' : "http://example.com/", 
+                          'description' : 'hello', 'img_url' : 'http://example.com/',
+                          'tags[]' : ['fun']}
+        post = DummyPost(d)
+        f = GameForm(dev, post)
+        v = f.is_valid()
+        self.assertEqual(v, True, 'This form should be valid for the rest of the test to make sense')
+        f.save()
+        l2 = Game.objects.all().count()
+        self.assertEqual(l1 + 1, l2)
+        self.assertTrue(Game.objects.filter(title='Cool title bro'))
+        
+    def test_save_existing_game_edits(self):
+        dev = User.objects.get(pk=4)
+        
+        # making some test games
+        g1 = Game(developer=dev, title='Funny Game', tags='fun,game,buy,please')
+        g2 = Game(developer=dev, title='very funny game', tags='fun,game,cheap')
+        g1.save()
+        g2.save()
+        
+        l1 = Game.objects.all().count()
+        d = {'title' : 'Cool title bro', 
+                          'price' : Decimal(0), 'url' : "http://example.com/", 
+                          'description' : 'hello', 'img_url' : 'http://example.com/',
+                          'tags[]' : ['fun']}
+        post = DummyPost(d)
+        f = GameForm(dev, post, instance=g1)
+        v = f.is_valid()
+        self.assertEqual(v, True, 'This form should be valid for the rest of the test to make sense')
+        f.save()
+        l2 = Game.objects.all().count()
+        self.assertEqual(l1, l2)
+        self.assertTrue(Game.objects.filter(title='Cool title bro'))
+        self.assertFalse(Game.objects.filter(title='Funny Game'))
+        
+        
+        
         
 class TestAuthView(TestCase):
     fixtures = ['groups.json', 'users.json']
@@ -479,7 +614,7 @@ class TestDevView(TestCase):
     def test_decorators(self):
         self.assertEqual(developer_view.login_only, True)
         self.assertEqual(developer_view.developers_only, True)
-        
+                
 class TestDevDeleteView(TestCase):
     fixtures = ['groups.json', 'users.json']
     

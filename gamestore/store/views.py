@@ -9,7 +9,7 @@ from django.contrib.auth.models import Group
 from django.core.mail import send_mail
 from django.core.signing import Signer
 
-from store.forms import MyRegistrationForm, GameForm
+from store.forms import MyRegistrationForm, GameForm, ProfileForm, PasswordForm
 from store.models import *
 from hashlib import md5
 import re, random
@@ -147,6 +147,8 @@ def signup_view(request):
             send_mail('Confirm registration', 'Go to this URL to confirm your account: '+'http://'+request.get_host()+'/signup_success/'+str(signed_value), 'admin@gamestore.com',
     [user.email], fail_silently=False)
             return render(request, 'store/confirm_registration.html')
+        else:
+            return render(request, 'store/signup.html', {'form' : form})
     return render(request, 'store/signup.html', {'form' : MyRegistrationForm()})
 
 def signup_success_view(request, signed_value):
@@ -354,26 +356,32 @@ def developer_view(request):
 @login_only
 def profile_view(request):
     """
+    View that lets player or developer view an change their personal details.
+        
+    Requires that the user is logged in.
+    """
+    if request.method=='POST':
+        f = ProfileForm(request.user, request.POST)
+        if f.is_valid():
+            f.save()
+        return render(request, 'store/profile.html', {'form' : f})
+    return render(request, 'store/profile.html')
+    
+@login_only
+def password_view(request):
+    """
     View that lets player or developer view details and change his/her password.
     
     Requires that the user is logged in.
     """
     if request.method=='POST':
-        old_password = request.POST.get('old_password', '')
-        password1 = request.POST.get('password1', '')
-        password2 = request.POST.get('password2', '')
-        p_success = None
-        if ((password1 != '') and (password1 == password2) and (request.user.check_password(old_password))):
-            request.user.set_password(password1)
-            request.user.save()
-            p_success = True
-            return render(request, 'store/profile.html', {'p_success' : p_success})
-        else:
-            return render(request, 'store/profile.html', {'p_success' : False})
-    
-    else:
-        return render(request, 'store/profile.html', {'p_success' : None})
-
+        f = PasswordForm(request.user, request.POST)
+        if f.is_valid():
+            f.save()
+            return render(request, 'store/profile.html', {'pw_changed' : True})
+        return render(request, 'store/profile.html', {'form' : f})
+    return render(request, 'store/profile.html')
+            
 @login_only
 @developers_only
 def dev_delete_game_view(request, game):
@@ -392,9 +400,8 @@ def dev_delete_game_view(request, game):
             raise Http404('')
         g.delete()
         return HttpResponseRedirect('/dev')
-    else:
-        # just go to dev/, don't do anything
-        return HttpResponseRedirect('/dev')
+    # just go to dev/, don't do anything
+    return HttpResponseRedirect('/dev')
 
 @login_only
 @developers_only
@@ -413,23 +420,11 @@ def dev_game_edit_view(request, game):
         raise Http404('')
     
     if request.method == 'POST':
-        c = {}
-        c.update(csrf(request))
-        f = GameForm(request.POST)
+        f = GameForm(request.user, request.POST, instance=g)
         if f.is_valid():
-            g.title = f.cleaned_data['title']
-            g.url = f.cleaned_data['url']
-            g.price = f.cleaned_data['price']
-            g.description = f.cleaned_data['description']
-            g.img_url=f.cleaned_data.get('img_url', None)
-            g.tags = ",".join(f.cleaned_data.get('tags[]', []))
-            g.save()
-            c['game'] = g
+            f.save()
             return HttpResponseRedirect('/dev')
-        else:
-            c['game'] = g
-            c['form'] = f
-            return render(request, 'store/editgame.html', c)
+        return render(request, 'store/editgame.html', {'game' : g, 'form' : f})
     return render(request, 'store/editgame.html', {'game' : g})
     
 @login_only
@@ -442,26 +437,17 @@ def dev_new_game_view(request):
     User must be logged in as a developer.
     """
     if request.method == 'POST':
-        c = {}
-        c.update(csrf(request))
-        f = GameForm(request.POST)
-                       
+        f = GameForm(request.user, request.POST)           
         if f.is_valid():
-            g = Game(developer=request.user, 
-                     title=f.cleaned_data['title'], 
-                     url=f.cleaned_data['url'], 
-                     price=f.cleaned_data['price'],
-                     description=f.cleaned_data['description'],
-                     img_url=f.cleaned_data.get('img_url', None),
-                     tags=",".join(f.cleaned_data.get('tags[]', [])))
-            g.save()
+            f.save()
             return HttpResponseRedirect('/dev')
         else:
             # make a game dict to emulate a Game object and pass it to the template
             # (to fill form values with previous input)
-            c['game'] = {'title' : f.data['title'], 'url' : f.data['url'], 'img_url' : f.data.get('img_url', None) , 'price' : f.data['price'], 'description' : f.data['description'], 'get_tags' : request.POST.getlist('tags[]')}
-            c['form'] = f
-            return render(request, 'store/editgame.html', c)
+            d = {}
+            d['game'] = {'title' : f.data['title'], 'url' : f.data['url'], 'img_url' : f.data.get('img_url', None) , 'price' : f.data['price'], 'description' : f.data['description'], 'get_tags' : request.POST.getlist('tags[]')}
+            d['form'] = f
+            return render(request, 'store/editgame.html', d)
     return render(request, 'store/editgame.html')
 
 @login_only
@@ -556,14 +542,3 @@ def home(request):
         return render(request, 'store/home.html', {'g' : choice, 'owned' : owned_games})
     # default behaviour for devs and unregistered users:
     return render(request, 'store/home.html', {'g' : choice, 'owned' : set()})
-
-
-
-
-
-
-
-
-
-
-
