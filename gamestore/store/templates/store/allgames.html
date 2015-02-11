@@ -70,7 +70,7 @@
                         {% if "Players" == request.user.groups.all.0.name %}
                             <button type="submit" formaction="/checkout">Buy now</button>
                         {% elif not "Developers" == request.user.groups.all.0.name %}
-                            <a href="{% url 'login' %}"><button>Please log in to play.</button></a>
+                            <a class="btn btn-default btn-sm" role="button" href="{% url 'login' %}">Please log in to play.</a>
                         {% endif %}
                     </form>
                     {% else %}
@@ -80,13 +80,13 @@
                         {% if "Players" == request.user.groups.all.0.name %}
                             <button type="submit" formaction="/checkout">Add to my games</button>
                         {% elif not "Developers" == request.user.groups.all.0.name %}
-                            <a href="{% url 'login' %}"><button>Please log in to play.</button></a>
+                            <a class="btn btn-default btn-sm" role="button" href="{% url 'login' %}">Please log in to play.</a>
                         {% endif %}
                     </form>
                     {% endif %}
                 {% else %}
                     <p>In my games</p>
-                    <a href="{% url 'play' g.pk %}"><button>Play now!</button></a>
+                    <a class="btn btn-default btn-sm" role="button" href="{% url 'play' g.pk %}">Play now!</a>
                 {% endif %}
                 </div>
             </div>
