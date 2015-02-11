@@ -113,7 +113,7 @@ def auth_view(request):
     username = request.POST.get('username', '')
     password = request.POST.get('password', '')
     user = auth.authenticate(username=username, password=password)
-    if user is not None:
+    if ((user is not None) and (user.is_active == True)):
         auth.login(request, user)
         if is_player(user):
             return HttpResponseRedirect('/mygames')
@@ -142,11 +142,13 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             user.is_active = False  # Disables user account until it is validated by e-mail
+            user.save()
             signer = Signer()
             signed_value = signer.sign(user.pk) # signer used to make the individual URL harder to guess
             send_mail('Confirm registration', 'Go to this URL to confirm your account: '+'http://'+request.get_host()+'/signup_success/'+str(signed_value), 'admin@gamestore.com',
     [user.email], fail_silently=False)
-            return render(request, 'store/confirm_registration.html')
+            confirmation_link = 'http://'+request.get_host()+'/signup_success/'+str(signed_value)  
+            return render(request, 'store/confirm_registration.html', {'confirmation_link' : confirmation_link})
         else:
             return render(request, 'store/signup.html', {'form' : form})
     return render(request, 'store/signup.html', {'form' : MyRegistrationForm()})
@@ -160,6 +162,7 @@ def signup_success_view(request, signed_value):
         user_pk = signer.unsign(signed_value)
         user = User.objects.get(pk=user_pk)
         user.is_active = True
+        user.save()
         return render(request, 'store/signup_success.html')
     except:
         return HttpResponseRedirect("/denied")
@@ -174,6 +177,7 @@ def google_login_view(request):
         try:
             request.user.groups.add(Group.objects.get(name='Players'))
             request.user.set_unusable_password()
+            request.user.save()
             return HttpResponseRedirect("/mygames")
         except:
             raise Http404("Something went wrong")

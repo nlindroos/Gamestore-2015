@@ -5,5 +5,8 @@
 {% block content %}
     <div class="container">
         <p>Confirm your registration via e-mail. Please check your e-mail inbox!</p>
+        <p>(This project currently uses Django's Console Backend, which sends the e-mail to
+        stdout. As this stream is only visible in the Heroku logs, please use the link provided
+        here instead: <a href="{{ confirmation_link }}">{{ confirmation_link }}</a>)</p>
     </div>
 {% endblock %}
