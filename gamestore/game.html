@@ -53,11 +53,14 @@
             height : 6%;
             padding : 0px;
             margin : 0px;
+            background-color : white;
+            position : absolute;
         }
         .obstacle {
             width : 1%;
             height : 1%;
             background-color : white;
+            position : absolute;
         }
         #warning {
             width : 2vw;
@@ -78,6 +81,13 @@
         #ammopack {
             background-image : url(https://upload.wikimedia.org/wikipedia/commons/c/c2/Icon_vojn.png);
         }
+        #game_over_text {
+            color:black;
+            font-size:10vw;
+            display:hidden;
+            top: 50%;
+            left : 50%;
+        }
         </style>
     </head>
     <body>
@@ -97,37 +107,45 @@
             </div>
         </div>
         <div id="game_area">
+            <span id="game_over_text">GAME OVER</span>
             <button id="save_button">Save</button>
             <div id="warning"></div>
             <div id="healthpack" class="bonus"></div>
             <div id="ammopack" class="bonus"></div>
         </div>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
         <script>
         "use strict";
-        
-        //storing some commonly used variables:
-        var button =  $("#save_button");
-        var game_area = $("#game_area");
-        var warning = $("#warning");
-        var health_pack = $("#healthpack");
-        var ammo_pack = $("#ammopack");
-        var offset_h = game_area.offset().left;
-        var offset_v = game_area.offset().top;
-        var height = game_area.outerHeight();
-        var width = game_area.outerWidth();
-        var btn_h = button.outerHeight();
-        var btn_w = button.outerWidth();
+                
+        //declaring some commonly used variables (init them when document is ready):
+        var button;
+        var game_area;
+        var warning;
+        var health_pack;
+        var ammo_pack;
+        var game_over_text;
+        var offset_h;
+        var offset_v;
+        var height;
+        var width;
+        var btn_h;
+        var btn_w;
         
         //game variables, initialized by play_game()
         var pause;
         var time;
+        var important_message;
         var x;
         var y;
         var nukes;
         var hp;
+        var destroyed_obstacles; //list of indexes of destroyed obstacles (used to reuse expired indexes when spawning new obstacles)
         
-        var max_hp = 100;
+        var prevtime;
+        var timedelta;
+        
+        var max_hp = 30;
         var max_nukes = 5;
         
         //the game has max 200 obstacles
@@ -137,20 +155,6 @@
         //instead of creating and appending a new element every second
         var obstacle_count = 0; //number of visible obstacles
         var obstacles = new Array(max_obstacles);
-        for (var i = 0; i < max_obstacles; i++) {
-            var o = $('<div class="obstacle"></div>');
-            o.hide();
-            game_area.append(o);
-            //add obstacle to array (we'll set the values later)
-            obstacles[i] = {
-                "o" : o,
-                "speedX" : 0,
-                "speedY" : 0,
-                "x" : 0,
-                "y" : 0,
-                "active" : false
-            };
-        }
         
         //handles for intervals (periodic events) used by the game,
         //leave them undefined for now, play_game() sets them, game_over() clears them
@@ -167,68 +171,105 @@
             obj.css('top',  (100 * y_pos) + '%');
             obj.css('left', (100 * x_pos) + '%');
         }
-        function x_out_of_bounds(obj) {
+        function x_out_of_bounds(obst) {
             /*
             Returns true if obj is outside of the game area in x direction, otherwise returns false.
             */
-            var xcoord = obj.offset().left;
-            if (xcoord + obj.outerWidth() > offset_h + width) return true;
-            if (xcoord < offset_h) return true;
+            if (obst.x > 0.99) return true;
+            if (obst.x < 0.01) return true;
             return false;
         }
-        function y_out_of_bounds(obj) {
+        function y_out_of_bounds(obst) {
             /*
             Returns true if obj is outside of the game area in y direction, otherwise returns false.
             */
-            var ycoord = obj.offset().top;
-            if (ycoord + obj.outerHeight() > offset_v + height) return true;
-            if (ycoord < offset_v) return true;
+            if (obst.y > 0.99) return true;
+            if (obst.y < 0.01) return true;
             return false;
         }
-        function out_of_bounds(obj) {
+        function out_of_bounds(obst) {
             /*
             Returns true if obj is outside of the game area in any direction, otherwise returns false.
             */
             return x_out_of_bounds(obj) || y_out_of_bounds(obj);
         }
+        
+        function collide_v(obst) {
+            var u1 = obst.offset().top;
+            var d1 = u1 + obst.outerHeight();
+            var u2 = button.offset().top;
+            var d2 = u2 + btn_h;
+            
+            return !((u1 > d2) || (d1 < u2));
+        }
+        
+        function collide_h(obst) {
+            var l1 = obst.offset().left;
+            var r1 = l1 + obst.outerWidth();
+            var l2 = button.offset().left;
+            var r2 = l2 + btn_w;
+            
+            return !((r1 < l2) || (l1 > r2));
+        }
+        
         function collide(obst) {
             /*
             Returns true if obst collides (overlaps) with button.
             */
-            var l1 = obst.offset().left;
-            var r1 = l1 + obst.outerWidth();
-            var u1 = obst.offset().top;
-            var d1 = u1 + obst.outerHeight();
-            
-            
-            var l2 = button.offset().left;
-            var r2 = l2 + btn_w;
-            var u2 = button.offset().top;
-            var d2 = u2 + btn_h;
-            
-            return !(
-                (r1 < l2) || (l1 > r2)
-                ||
-                (u1 > d2) || (d1 < u2)
-            );
+            return collide_v(obst) && collide_h(obst);
         }
-        function show_message(msg, time) {
-            $("#messages").text(msg);
-            window.setTimeout(function() {
-                $("#messages").text(""); 
-            }, time);
+        
+        function show_message(msg, time, important) {
+            /*
+            Shows a message in the message field for a specified number of milliseconds.
+            If the message is important, it will set the important_message variable which
+            causes unimportant messages to not be shown as long as the important message has time left.
+            */
+            if (important) 
+            {
+                important_message = true;
+                $("#messages").text(msg);
+                window.setTimeout(function() {
+                    $("#messages").text(""); 
+                    important_message = false;
+                }, time);
+            }
+            else if (!important_message) {
+                $("#messages").text(msg);
+                window.setTimeout(function() {
+                    $("#messages").text(""); 
+                }, time);
+            } 
         }
+        
         function nuke() {
             if (nukes) {
                 obstacle_count = 0;
+                destroyed_obstacles = [];
                 $(".obstacle").hide();
-                hp -= 15;
+                hp -= 10;
                 $("#lives").text(hp);
                 nukes--;
                 $("#nukes").text(nukes);
                 show_message("BOOM!", 1000);
+                
+                game_area.css("transition", "background 0.2s linear");
+			    game_area.css("-webkit-transition", "background 0.2s linear");
+			    game_area.css("-moz-transition", "background 0.2s linear");
+                
+				game_area.css("background-color", "white");
+				window.setTimeout(function() {
+					window.setTimeout(function() {
+						window.setTimeout(function() {
+							game_area.css("background-color", "black");
+						}, 100);
+						game_area.css("background-color", "red");
+					}, 150);
+                    game_area.css("background-color", "orange");
+                }, 200);
+                game_area.effect("shake", {distance:25, times:6}, 550);
                 window.setTimeout(function() {
-                    show_message("Uh-oh, the nuke damaged the save button...", 2000);
+                    show_message("Uh-oh, the nuke damaged the save button...", 1500);
                 }, 1500);
             }
         }
@@ -238,13 +279,12 @@
             */
             
             pause = true;
-            
-            //inform player:
-            $("#messages").text("Game Over");
-           
+                       
             //remove stuff:
             button.hide();
             warning.hide();
+            health_pack.hide();
+            ammo_pack.hide();
             obstacle_count = 0;
             $(".obstacle").hide();
             window.clearInterval(mainloop);
@@ -253,8 +293,16 @@
             
             //send highscore:
             if (send_score) {
-                msg = {
-                    "messageType": "LOAD_REQUEST",
+                //animation:
+                game_over_text.show();
+                game_area.css("transition", "background 1s linear");
+    		    game_area.css("-webkit-transition", "background 1s linear");
+    		    game_area.css("-moz-transition", "background 1s linear");
+    			game_area.css("background-color", "red");
+                
+                //send the highscore
+                var msg = {
+                    "messageType": "SCORE",
                     "score" : time
                 }
                 window.parent.postMessage(msg, '*');
@@ -336,6 +384,8 @@
             handles for the timers (so they can be cleared when game is over)
              */
             
+            game_over_text.hide();
+            game_area.css("background-color", "black");
             pause = false;
             
             health_pack.hide();
@@ -354,8 +404,13 @@
             nukes = max_nukes;
             hp = max_hp;
             time = 0;
+            important_message = false;
             y = 0.5;
             x = 0.5;
+            destroyed_obstacles = [];
+            
+            prevtime = (new Date()).getTime();
+            timedelta = 0;
 
             //overrides
             if (x_i !== undefined) 
@@ -366,13 +421,14 @@
                 obstacle_count = obst_i.length;
                 for (var i = 0; i < obstacle_count; i++) {
                     var obst = obstacles[i];
+                    var odiv = obst.o;
                     obst.speedX = obst_i[i].speedX;
                     obst.speedY = obst_i[i].speedY;
                     obst.x = obst_i[i].x;
                     obst.y = obst_i[i].y;
                     obst.active = true;
-                    set_position(obst.o, obst.x, obst.y);
-                    obst.o.show();
+                    set_position(odiv, obst.x, obst.y);
+                    odiv.show();
                 }
             }
             if (time_i !== undefined) 
@@ -384,11 +440,6 @@
                 
             
             set_position(button, x, y);
-            for (var i = 0; i < obstacles.length; i++) {
-                var obst = obstacles[i];
-                set_position(obst.o, obst.x, obst.y);
-                game_area.append(obst.o);
-            }
             $("#lives").text(hp);
             $("#nukes").text(nukes);
             
@@ -408,75 +459,135 @@
                 //every second, add new obstacle
                 if (!pause && obstacle_count < max_obstacles) {
                     //add new obstacle at random position
-                    var x_c = Math.random();
-                    var y_c = Math.random();
-                    var obst = obstacles[obstacle_count];
-                    obst.speedX = 0.002 * Math.sqrt(time) * (Math.random() * 2 - 1);
-                    obst.speedY = 0.002 * Math.sqrt(time) * (Math.random() * 2 - 1);
+                    var x_c = Math.random() * 0.9 + 0.05;
+                    var y_c = Math.random() * 0.9 + 0.05;
+                    
+                    var obst;
+                    if (destroyed_obstacles.length > 0) {
+                        obst = obstacles[destroyed_obstacles.pop()];
+                    }
+                    else {
+                        obst = obstacles[obstacle_count];
+                        obstacle_count++;
+                    }
+                    
+                    obst.speedX = Math.min(Math.sqrt(time), 12) * (Math.random() * 2 - 1);
+                    obst.speedY = Math.min(Math.sqrt(time), 12) * (Math.random() * 2 - 1);
                     obst.x = x_c;
                     obst.y = y_c;
                     obst.active = true;
-                    set_position(obst.o, x_c, y_c);
-                    obstacle_count++;
+                    var odiv = obst.o;
+                    set_position(odiv, x_c, y_c);
+                    
                     
                     //draw spawn point warning
                     set_position(warning, x_c, y_c);
                     window.setTimeout(function() {
                         //wait 1 sec so player can see spawn point first, then add obstacle
-                        set_position(obst.o, x_c, y_c);
-                        obst.o.show();
+                        odiv.show();
                     }, 1000);
                 }
-                //sometimes, add health pack:
-                var r = Math.random();
-                if (r > 0.97) {
-                    set_position(health_pack, Math.random(), Math.random());
-                    health_pack.show();
+                if (!pause) {
+                    //sometimes, add health pack:
+                    var r = Math.random();
+                    if (r > 0.90) {
+                        set_position(health_pack, Math.random(), Math.random());
+                        health_pack.show();
+                    }
+                    //sometimes, add ammo pack:
+                    var r = Math.random();
+                    if (r > 0.99) {
+                        set_position(ammo_pack, Math.random(), Math.random());
+                        ammo_pack.show();
+                    }
                 }
-                //sometimes, add ammo pack:
-                var r = Math.random();
-                if (r > 0.95) {
-                    set_position(ammo_pack, Math.random(), Math.random());
-                    ammo_pack.show();
-                }
-                
             }, 1000);
             
             mainloop = window.setInterval(function() {
                 //mainloop: move obstacles and detect collisions
+                set_position(button, x, y);
+                var curtime = (new Date()).getTime();
+                timedelta = curtime - prevtime;
+                prevtime = curtime;
                 if (!pause) {
-                    if (hp <= 0)
-                        game_over();
+                    if (hp <= 0) {
+                        game_over(true);
+                        return;
+                    }
+					var hit = false;
                     for (var i = 0; i < obstacle_count; i++) {
                         var obst = obstacles[i];
-                        if (collide(obst.o)) {
-                            hp--;
-                            $("#lives").text(hp);
+                        var odiv = obst.o;
+                        if (collide(odiv)) {
+                            if (obst.active) {
+                                hp--;
+                                $("#lives").text(hp);
+    							hit = true;
+                                obst.active = false;
+                                odiv.hide();
+                                destroyed_obstacles.push(i);
+                            }
+                        }
+                        else {
+                            obst.active = true;
                         }
                         var old_x = obst.x;
                         var old_y = obst.y;
-                        obst.y += obst.speedY;
-                        obst.x += obst.speedX;
-                        var x_out = x_out_of_bounds(obst.o);
-                        var y_out = y_out_of_bounds(obst.o);
-                        if (!x_out && !y_out) {
-                            set_position(obst.o, obst.x, obst.y);
+                        obst.x += obst.speedX * timedelta / 8000;
+                        obst.y += obst.speedY * timedelta / 8000;
+                        if (x_out_of_bounds(obst)) 
+                        {
+                            obst.speedX = -obst.speedX;
+                            obst.x = old_x + obst.speedX * timedelta / 8000;
                         }
-                        else {
-                            if (x_out)
-                                obst.speedX = -obst.speedX;
-                            if (y_out)
-                                obst.speedY = -obst.speedY;   
-                            obst.x = old_x += obst.speedX;
-                            obst.y = old_y += obst.speedY;
-                            set_position(obst.o, obst.x, obst.y);
+                        if (y_out_of_bounds(obst)) 
+                        {
+                            obst.speedY = -obst.speedY;
+                            obst.y = old_y + obst.speedY * timedelta / 8000;
                         }
+                        set_position(odiv, obst.x, obst.y);                     
                     }
+					if (hit) {
+					    button.css("background-color", "red");
+                        window.setTimeout(function() {
+                            button.css("background-color", "white");
+                        }, 200);
+                        game_area.effect("shake", {distance:8, times:5}, 200);
+                        show_message('Ouch!', 500);
+					}
                 }
-            }, 20);
+            }, 25);
             
         }
         $(document).ready(function() {  
+            button =  $("#save_button");
+            game_area = $("#game_area");
+            warning = $("#warning");
+            health_pack = $("#healthpack");
+            ammo_pack = $("#ammopack");
+            game_over_text = $("#game_over_text");
+            
+            offset_h = game_area.offset().left;
+            offset_v = game_area.offset().top;
+            height = game_area.outerHeight();
+            width = game_area.outerWidth();
+            btn_h = button.outerHeight();
+            btn_w = button.outerWidth();
+            
+            for (var i = 0; i < max_obstacles; i++) {
+                var o = $('<div class="obstacle"></div>');
+                o.hide();
+                game_area.append(o);
+                //add obstacle to array (we'll set the values later)
+                obstacles[i] = {
+                    "o" : o,
+                    "speedX" : 0,
+                    "speedY" : 0,
+                    "x" : 0,
+                    "y" : 0,
+                    "active" : false
+                };
+            }
             $("#newgame_button").click(function() {
                 new_game();
             });          
@@ -507,7 +618,7 @@
                     load_game(event.data);
                 } 
                 else if (event.data.messageType === "MESSAGE") {
-                    show_message(event.data.message, 2000);
+                    show_message(event.data.message, 3000, true);
                 }
             });
             
@@ -525,6 +636,7 @@
                     var obst = obstacles[i];
                     set_position(obst.o, obst.x, obst.y);
                 }
+                set_position(button, x, y);
             });
             
             game_area.mousemove(function(event) {
@@ -532,10 +644,11 @@
                 Sets the save button to the current mouse position when mouse is moved.
                 */
                 if (!pause) {
-                    var x_real = event.pageX - 0.5 * btn_w;
-                    var y_real = event.pageY - 0.5 * btn_h;
-                    if (x_real > offset_h && x_real + btn_w < width + offset_h && y_real + btn_h < height + offset_v && y_real > offset_v) {
-                        button.offset({'top' : y_real, 'left' : x_real});
+                    var x_real = event.pageX - 0.5 * btn_w - offset_h;
+                    var y_real = event.pageY - 0.5 * btn_h - offset_v;
+                    if (x_real > 0 && x_real + btn_w < width && y_real + btn_h < height && y_real > 0) {
+                        x = (x_real) / width;
+                        y = (y_real) / height;
                     }
                     if (collide(health_pack)) {
                         hp += 5;
@@ -551,6 +664,7 @@
                     }
                 }
             });
+            window.focus();
             play_game();
         });
         </script>
