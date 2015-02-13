@@ -82,6 +82,7 @@ We debated and googled extensively for the smartest way to separate players and 
 #### Testing practices
 We had difficulties maintaining the principle of testing a feature before assuming it as “done” and starting on the next feature.
 #### Initial difficulties with Heroku deployment
+Following Heroku’s own instructions led us astray, but the lecture slides brought us back to the light. We had to delete our application from Heroku several times and redeploy it before it worked.
 
 ## The division of work between team members
 Our team members had quite varying levels of programming experience. We divided the work according to the members’ previous experience and interest areas. Naturally, we helped each other on almost everything, so the following division is slightly forced:
@@ -239,11 +240,12 @@ For example:
 
 
 The gamestore can be accessed <a href="http://gamestore2015.herokuapp.com">here</a>.
-Known issues
-Registration confirmation mail is not visible to the end-user, link added to the page as a work-around.
-Navigation bar doesn’t work optimally on Chrome Android v. 40.0, especially on the API help page.
-Service is not optimized for playing games on mobile.
-Our game, Adventure of Save Button, has a minor bug that causes highscore messages to disappear from the screen slightly too soon
+
+## Known issues
+*Registration confirmation mail is not visible to the end-user, link added to the page as a work-around.
+*Navigation bar doesn’t work optimally on Chrome Android v. 40.0, especially on the API help page.
+*Service is not optimized for playing games on mobile.
+*Our game, Adventure of Save Button, has a minor bug that causes highscore messages to disappear from the screen slightly too soon
 
 
 

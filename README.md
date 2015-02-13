@@ -8,3 +8,6 @@ Games should implement the postmessage protocol as presented in the project desc
 The initial [project plan](../blob/master/project_plan.md) can be found [behind this link](../blob/master/project_plan.md).
 
 The [final submission](../blob/master/final_submission.md) can be found [behind this link](../blob/master/final_submission.md).
+
+[Gamestore 2015](http://gamestore2015.herokuapp.com) can be found [here](http://gamestore2015.herokuapp.com).
+
