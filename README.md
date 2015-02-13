@@ -5,6 +5,6 @@ A user can log in with Google login, a previously created Gamestore 2015 account
 
 Games should implement the postmessage protocol as presented in the project description. Otherwise, gameplay itself is completely dependent on the game being played, as all of the game controls are required to be in the game. In other words, the ‘Play game’ page is nothing but a page with an iframe that listens to messages from the game and sends messages to it. There are currently two playable games: the example game and our own game, the other ‘games’ are purely fillers that make it easier to demonstrate site features.
 
-The initial [project plan](project_plan.md) can be found [behind this link](project_plan.md).
+The initial [project plan](../blob/master/project_plan.md) can be found [behind this link](../blob/master/project_plan.md).
 
-The [final submission](final_submission.md) can be found [behind this link](final_submission.md).
+The [final submission](../blob/master/final_submission.md) can be found [behind this link](../blob/master/final_submission.md).
