@@ -84,7 +84,7 @@
         #game_over_text {
             color:black;
             font-size:10vw;
-            display:hidden;
+            display:none;
             top: 50%;
             left : 50%;
         }
@@ -191,7 +191,7 @@
             /*
             Returns true if obj is outside of the game area in any direction, otherwise returns false.
             */
-            return x_out_of_bounds(obj) || y_out_of_bounds(obj);
+            return x_out_of_bounds(obst) || y_out_of_bounds(obst);
         }
         
         function collide_v(obst) {
@@ -304,7 +304,7 @@
                 var msg = {
                     "messageType": "SCORE",
                     "score" : time
-                }
+                };
                 window.parent.postMessage(msg, '*');
             }
         }
@@ -495,7 +495,7 @@
                         health_pack.show();
                     }
                     //sometimes, add ammo pack:
-                    var r = Math.random();
+                    r = Math.random();
                     if (r > 0.99) {
                         set_position(ammo_pack, Math.random(), Math.random());
                         ammo_pack.show();
