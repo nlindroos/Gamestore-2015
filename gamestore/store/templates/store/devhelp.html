@@ -1,0 +1,129 @@
+{% extends "store/base.html" %}
+
+{% block head %}
+<title>Developer - Help</title>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <h1>Submitting games</h1>
+    <p>
+        On the 'My games' page you can upload a new game to the service, allowing players
+        to purchase and play your game. Games are simply web pages that are placed in an iframe 
+        and communicate with the service using window.postMessage. Therefore, you should host
+        the game at another location, and just provide a link to the Gamestore2015 service. 
+        The following sections explain how to submit your game, and describe the postMessage
+        protocol that your game should implement in order to be compatible with the service. 
+    </p>
+    <h2>Filling out the form</h2>
+    <p>
+        In order to submit a game you must go to 'My games' and click 'Add new game'. You will 
+        be presented with a form for uploading a new game. The form contains six input fields that
+        should be filled out:
+    </p>
+    <ul>
+        <li><strong>Title:</strong> the name of your game</li>
+        <li><strong>URL:</strong> the URL to your game</li>
+        <li><strong>Price:</strong> the price of your game, in Euros, limited to 999.99€</li>
+        <li><strong>Description:</strong> a brief description of your game</li>
+        <li><strong>Image URL:</strong> a link to a picture that will be associated with your game (optional)</li>
+        <li><strong>Tags:</strong> a list of tags that can be used to find the game in searches</li>
+    </ul>
+    <h3>Adding tags</h3>
+    <p>
+        Probably the most important way to let players discover your game is to use the tagging system.
+        Tags are single words that may contain letters, numbers and underscores only.
+        Tags enable players to search for your game using keywords, and are used to match your game with other similar games.
+        When adding tags, consider adding short and common keywords that people are likely to use (e.g. 'action' or 'strategy'), rather
+        than complex tags that are hard for players to guess (e.g. 'turn_based_farming_simulation').
+    </p>
+    <p>
+        To add a new tag, click the 'Add tag' button below the list of tags (typing a comma (,) after an existing tag
+        will also add a new tag field). To reomve a tag, click the 'Remove' button next to the tag you wish to remove.
+    </p>
+    <h2>Game requirements</h2>
+    <p>
+        Your game can be basically anything, as long as it has a URL that we can use to link to it.
+        The only restriction is that the game should follow your postMessage protocol for sending highscores
+        and saving/loading games. Note also that the 'Play game' page contains nothing but an iframe holding your game,
+        so you should provide all the necessary controls (e.g. save and load buttons) in your game.
+    </p>
+    <h3>The postMessage protocol</h3>
+    <p>
+        All messages sent between the game and the service should be Javascript objects containing at least a string
+        called 'messageType' and possibly other attributes depending on the type of message (see below).
+    </p>
+    <p>The game must <strong>listen</strong> to the following types of messages:</p>
+    <pre>
+{
+    messageType : "LOAD",
+    gameState : {} // some object containing game state information
+}</pre>
+    <pre>
+{
+    messageType : "MESSAGE",
+    message: "" // some string containing a message from the server to the game
+}</pre>
+    <p>
+        The game must be able to <strong>send</strong> the following types of messages:
+    </p>
+    <pre>
+{
+    messageType : "LOAD_REQUEST"
+}</pre>
+    <pre>
+{
+    messageType : "SAVE",
+    gameState : {} // some object containing game state information
+}</pre>
+    <pre>
+{
+    messageType : "SCORE",
+    score : 0.0 // some number representing the player's score
+}</pre>
+    <p>Remarks:</p>
+    <ul>
+        <li>Game state must be a JSON serializable object</li>
+        <li>
+            Messages are sent from the service to the game in indication of 
+            save/load success and failure, and highscore results (whether the score semt was a new highscore or not).
+            Your game should make these messages visible to the player.
+        </li>
+        <li>
+            Load requests are sent from the game when the user wishes to load a saved game. If loading is successful,
+            the service will send a LOAD message, which your game should use to restore the game's state to the 
+            one contained in the LOAD message.
+        </li>
+    </ul>
+    <h2>Making your game visible</h2>
+    <p>
+        Players can find your games in one of three ways:
+    </p>
+    <ul>
+        <li>Searching on the 'All games' page</li>
+        <li>Discovering similar games at another game's page</li>
+        <li>Discovering other games by the same developer</li>
+    </ul>
+    <p>
+        In order to maximize the chances of your games being discovered and purchased you should:
+    </p>
+    <ul>
+        <li>Provide an extensive list of tags</li>
+        <li>Use an easily searchable title</li>
+        <li>Provide an accuarate and sufficiently detailed, yet exciting description of your game</li>
+        <li>Provide a good picture for your game</li>
+        <li>Set a reasonable price</li>
+        <li>
+            Before submitting a priced game, submit and interesting free game, to build up 
+            your reputation as a good developer and to serve as a gateway for players to find your other games
+        </li>
+    </ul>
+    <p>
+        By following these guidelines you will be likely to improve your popularity and sales. Note that
+        Gamestore2015 gives no guarantee about what your sales will be. If you experience poor results, you may try changing
+        the price of your game, or even remove the game from the service alltogether.
+    </p>
+</div>
+
+{% endblock %}

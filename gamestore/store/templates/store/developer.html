@@ -7,7 +7,10 @@
         <h1>Developer page</h1>
         <p>Welcome, {{ devname }}!</p>
         <p>This page shows your games and how they have sold (we hope you're getting rich :P). 
-        <br>You can edit games by clicking their names in the table.</p>
+        <br>You can edit games by clicking their names in the table.<br>
+        Be sure to check out the <a href="{% url 'dev_help' %}">documentation</a> before submitting your first game,
+        or at any time you need help.
+        </p>
         <a class="btn btn-default" role="button" href="./newgame">Add new game</a>
         {% if games %}
         <div id="gamelist" class="table-responsive">

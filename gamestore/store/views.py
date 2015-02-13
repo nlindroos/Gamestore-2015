@@ -357,6 +357,15 @@ def developer_view(request):
     return render(request, 'store/developer.html', {'games' : games, 'devname' : request.user.username})
 
 @login_only
+@developers_only    
+def dev_help_view(request):
+    """
+    Shows help page for developers.
+    """
+    return render(request, 'store/devhelp.html')
+    
+
+@login_only
 def profile_view(request):
     """
     View that lets player or developer view an change their personal details.
