@@ -9,9 +9,9 @@ This application was designed and programmed by [Niklas Lindroos](https://github
 
 The [project description](../master/project_description.md) can be viewed [here](../master/project_description.md).
 
-The initial [project plan](../blob/master/project_plan.md) can be found [behind this link](../master/project_plan.md).
+The initial [project plan](../master/project_plan.md) can be found [behind this link](../master/project_plan.md).
 
-The [final submission](../blob/master/final_submission.md) can be found [behind this link](../master/final_submission.md).
+The [final submission](../master/final_submission.md) can be found [behind this link](../master/final_submission.md).
 
 [Gamestore 2015](http://gamestore2015.herokuapp.com) can be found [here](http://gamestore2015.herokuapp.com).
 
