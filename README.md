@@ -5,9 +5,13 @@ A user can log in with Google login, a previously created Gamestore 2015 account
 
 Games should implement the postmessage protocol as presented in the project description. Otherwise, gameplay itself is completely dependent on the game being played, as all of the game controls are required to be in the game. In other words, the ‘Play game’ page is nothing but a page with an iframe that listens to messages from the game and sends messages to it. There are currently two playable games: the example game and our own game, the other ‘games’ are purely fillers that make it easier to demonstrate site features.
 
-The initial [project plan](../blob/master/project_plan.md) can be found [behind this link](../blob/master/project_plan.md).
+This application was designed and programmed by [Niklas Lindroos](https://github.com/nlindroos), [Martin Granholm](https://github.com/mgholm) and [Johan Gädda](https://github.com/johangadda) as part of the Aalto University course Web Software Development.
 
-The [final submission](../blob/master/final_submission.md) can be found [behind this link](../blob/master/final_submission.md).
+The [project description](../master/project_description.md) can be viewed [here](../master/project_description.md).
+
+The initial [project plan](../blob/master/project_plan.md) can be found [behind this link](../master/project_plan.md).
+
+The [final submission](../blob/master/final_submission.md) can be found [behind this link](../master/final_submission.md).
 
 [Gamestore 2015](http://gamestore2015.herokuapp.com) can be found [here](http://gamestore2015.herokuapp.com).
 
